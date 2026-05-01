@@ -1,0 +1,32 @@
+{
+  "name": "g-zl-k-sitesi",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "vite --open",
+    "dev:api": "node backend/server.mjs",
+    "dev:all": "concurrently -k -n api,vite -c blue,green \"node backend/server.mjs\" \"vite --open\"",
+    "dev:fresh": "npm run ports:free && npm run dev:all",
+    "ports:free": "npx --yes kill-port 5173 5174 5175 4000",
+    "open:site": "start http://localhost:5173",
+    "open:api": "start http://localhost:4000",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.10"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "nodemailer": "^8.0.7",
+    "pg": "^8.20.0"
+  }
+}
