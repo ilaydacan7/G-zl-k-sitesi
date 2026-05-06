@@ -7,7 +7,8 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "vite --open",
+    "dev": "concurrently -k -n api,vite -c blue,green \"node backend/server.mjs\" \"vite --open\"",
+    "dev:vite": "vite --open",
     "dev:api": "node backend/server.mjs",
     "dev:all": "concurrently -k -n api,vite -c blue,green \"node backend/server.mjs\" \"vite --open\"",
     "dev:fresh": "npm run ports:free && npm run dev:all",
@@ -18,6 +19,10 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@types/node": "^22.19.17",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
     "concurrently": "^9.2.1",
     "typescript": "~6.0.2",
     "vite": "^8.0.10"
@@ -27,6 +32,8 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "nodemailer": "^8.0.7",
-    "pg": "^8.20.0"
+    "pg": "^8.20.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5"
   }
 }

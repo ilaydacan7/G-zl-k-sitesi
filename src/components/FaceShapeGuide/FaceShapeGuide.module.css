@@ -1,0 +1,188 @@
+.section {
+  margin-top: 36px;
+  padding-top: 28px;
+  border-top: 1px solid #ececec;
+  font-family: 'Plus Jakarta Sans', 'Geist', 'Inter', sans-serif;
+}
+
+.head {
+  margin-bottom: 14px;
+}
+
+.title {
+  margin: 0 0 8px;
+  font-size: 24px;
+  color: #c4703a;
+  font-weight: 700;
+}
+
+.subtitle {
+  margin: 0;
+  color: #686868;
+  font-size: 13px;
+}
+
+.container {
+  width: 100%;
+  background: #d9c4be;
+  border-radius: 16px;
+  padding: 32px;
+  box-sizing: border-box;
+}
+
+.topRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.topCol {
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: center;
+}
+
+.faceSvg {
+  width: 94px;
+  height: 112px;
+}
+
+.faceMain {
+  fill: none;
+  stroke: #1f1f1f;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.faceDetail {
+  fill: none;
+  stroke: #1f1f1f;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+.shapeIcon {
+  margin: 8px auto 0;
+  background: #e8d0ca;
+}
+
+.triangle {
+  width: 0;
+  height: 0;
+  border-left: 14px solid transparent;
+  border-right: 14px solid transparent;
+  border-top: 24px solid #e8d0ca;
+  background: transparent;
+}
+
+.tallOval {
+  width: 26px;
+  height: 34px;
+  border-radius: 50%;
+}
+
+.circle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}
+
+.square {
+  width: 28px;
+  height: 28px;
+}
+
+.rectangle {
+  width: 20px;
+  height: 32px;
+}
+
+.label {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #3a3a3a;
+  font-weight: 500;
+}
+
+.divider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.1);
+  margin: 18px 0 14px;
+}
+
+.bottomWrap {
+  background: #f9f0ee;
+  border-radius: 0 0 12px 12px;
+  padding: 12px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(110px, 1fr));
+  gap: 8px;
+}
+
+.cell {
+  background: #fff;
+  border: 1px solid #eadfdc;
+  border-radius: 8px;
+  padding: 8px;
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+
+.cell:hover {
+  transform: translateY(-2px);
+  border-color: #c4703a;
+}
+
+.glassSvg {
+  width: 100%;
+  max-width: 120px;
+  height: 42px;
+}
+
+.glassLine {
+  fill: none;
+  stroke: #1a1a1a;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (max-width: 900px) {
+  .container {
+    padding: 24px 16px;
+  }
+
+  .bottomWrap {
+    overflow-x: auto;
+  }
+
+  .grid {
+    min-width: 640px;
+  }
+}
+
+@media (max-width: 600px) {
+  .topRow {
+    flex-wrap: wrap;
+  }
+
+  .topCol {
+    flex: 0 0 calc(33.333% - 11px);
+  }
+
+  .bottomWrap {
+    overflow-x: auto;
+  }
+
+  .grid {
+    min-width: 520px;
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+  }
+}

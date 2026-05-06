@@ -1,8 +1,11 @@
+import { EventEmitter } from 'node:events'
 import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 
 const apiTarget = process.env.VITE_API_PROXY_TARGET ?? 'http://127.0.0.1:4000'
 
 export default defineConfig({
+  plugins: [react()],
   server: {
     // strictPort + sabit adres: yanlış portta (5174/5175) acilmis localhost sorununu engeller.
     host: true,
@@ -13,7 +16,7 @@ export default defineConfig({
         target: apiTarget,
         changeOrigin: true,
         configure(proxy) {
-          proxy.on('error', (err) => {
+          ;(proxy as EventEmitter).on('error', (err: Error) => {
             console.error('[vite proxy] API gecidi hatasi (API calisiyor mu?),', err.message)
           })
         },
@@ -29,7 +32,7 @@ export default defineConfig({
         target: apiTarget,
         changeOrigin: true,
         configure(proxy) {
-          proxy.on('error', (err) => {
+          ;(proxy as EventEmitter).on('error', (err: Error) => {
             console.error('[vite proxy] API gecidi hatasi (API calisiyor mu?),', err.message)
           })
         },

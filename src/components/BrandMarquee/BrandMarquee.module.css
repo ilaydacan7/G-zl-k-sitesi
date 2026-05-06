@@ -1,0 +1,115 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Dancing+Script:wght@400;600&family=Inter:wght@400;600;700&family=Playfair+Display:wght@400;500&display=swap');
+
+.section {
+  background: #ffffff;
+  padding: 32px 0;
+  border-top: 1px solid #f0e8e4;
+  border-bottom: 1px solid #f0e8e4;
+  overflow: hidden;
+  width: 100%;
+}
+
+.title {
+  margin: 0 0 20px;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 3px;
+  font-weight: 700;
+  color: #999;
+  font-family: 'Inter', sans-serif;
+}
+
+.marqueeWrapper {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.marqueeWrapper::before,
+.marqueeWrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 120px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.marqueeWrapper::before {
+  left: 0;
+  background: linear-gradient(to right, #ffffff, transparent);
+}
+
+.marqueeWrapper::after {
+  right: 0;
+  background: linear-gradient(to left, #ffffff, transparent);
+}
+
+.marqueeTrack {
+  display: flex;
+  width: max-content;
+  animation: marquee 30s linear infinite;
+}
+
+.marqueeTrack:hover {
+  animation-play-state: paused;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 40px;
+  font-size: 18px;
+  color: #1a1a1a;
+  white-space: nowrap;
+  cursor: pointer;
+  opacity: 0.75;
+  transition: opacity 0.2s ease;
+}
+
+.item:hover {
+  opacity: 1;
+}
+
+.separator {
+  width: 1px;
+  height: 16px;
+  background: #ddd;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.serif {
+  font-family: 'Playfair Display', serif;
+  font-weight: 400;
+}
+
+.script {
+  font-family: 'Dancing Script', cursive;
+  font-size: 22px;
+}
+
+.sans {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.elegant {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  letter-spacing: 3px;
+  font-size: 16px;
+  text-transform: uppercase;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}

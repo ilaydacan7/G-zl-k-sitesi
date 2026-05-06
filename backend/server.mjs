@@ -34,9 +34,183 @@ const pool = new Pool({
   ssl: NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
 })
 
+/** CSRF imzası: ayrı anahtar yoksa oturum sırrı; o da yoksa DB URL türevi (tek sunucu için sabit). */
+const CSRF_SECRET = String(process.env.CSRF_SECRET ?? ADMIN_SESSION_SECRET ?? '')
+  .trim()
+  .replace(/^\uFEFF/, '') || crypto.createHash('sha256').update(DATABASE_URL).digest('hex')
+
+const CSRF_TTL_MS = 60 * 60 * 1000
+
+const getClientIp = (req) => {
+  const xf = req.headers['x-forwarded-for']
+  if (typeof xf === 'string' && xf.trim()) return xf.split(',')[0].trim()
+  return req.socket?.remoteAddress ?? 'unknown'
+}
+
+const LOGIN_RATE_WINDOW_MS = 15 * 60 * 1000
+const LOGIN_RATE_MAX_FAILS = 5
+const loginFailBuckets = new Map()
+
+const getLoginBucket = (key) => {
+  const now = Date.now()
+  let b = loginFailBuckets.get(key)
+  if (!b || b.resetAt <= now) {
+    b = { fails: 0, resetAt: now + LOGIN_RATE_WINDOW_MS }
+    loginFailBuckets.set(key, b)
+  }
+  return b
+}
+
+const isLoginBlocked = (key) => {
+  const b = getLoginBucket(key)
+  return b.fails >= LOGIN_RATE_MAX_FAILS
+}
+
+const sendLoginRateLimited = (res, key) => {
+  const b = getLoginBucket(key)
+  const retryAfterSec = Math.max(1, Math.ceil((b.resetAt - Date.now()) / 1000))
+  res.setHeader('Retry-After', String(retryAfterSec))
+  res.status(429).json({ error: 'cok_fazla_giris_denemesi' })
+}
+
+const recordLoginFail = (key) => {
+  const b = getLoginBucket(key)
+  b.fails += 1
+}
+
+const clearLoginFails = (key) => {
+  loginFailBuckets.delete(key)
+}
+
+const SCRYPT_PARAMS = { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 }
+const SCRYPT_KEYLEN = 64
+
+const hashUserPassword = (plain) => {
+  const salt = crypto.randomBytes(16)
+  const hash = crypto.scryptSync(String(plain), salt, SCRYPT_KEYLEN, SCRYPT_PARAMS)
+  return `scrypt$1$${SCRYPT_PARAMS.N}$${SCRYPT_PARAMS.r}$${SCRYPT_PARAMS.p}$${salt.toString('base64url')}$${hash.toString('base64url')}`
+}
+
+const verifyUserPassword = (plain, stored) => {
+  const s = String(stored ?? '')
+  if (!s.startsWith('scrypt$')) {
+    return plain === s
+  }
+  const parts = s.split('$')
+  if (parts.length !== 7 || parts[0] !== 'scrypt' || parts[1] !== '1') return false
+  const N = Number(parts[2])
+  const r = Number(parts[3])
+  const p = Number(parts[4])
+  if (!Number.isFinite(N) || !Number.isFinite(r) || !Number.isFinite(p)) return false
+  let salt
+  let expected
+  try {
+    salt = Buffer.from(parts[5], 'base64url')
+    expected = Buffer.from(parts[6], 'base64url')
+  } catch {
+    return false
+  }
+  const hash = crypto.scryptSync(String(plain), salt, expected.length, { N, r, p, maxmem: SCRYPT_PARAMS.maxmem })
+  if (hash.length !== expected.length) return false
+  try {
+    return crypto.timingSafeEqual(hash, expected)
+  } catch {
+    return false
+  }
+}
+
+const createCsrfToken = () => {
+  const payload = { t: Date.now(), n: crypto.randomBytes(10).toString('base64url') }
+  const body = Buffer.from(JSON.stringify(payload), 'utf8').toString('base64url')
+  const sig = crypto.createHmac('sha256', CSRF_SECRET).update(body).digest('base64url')
+  return `${body}.${sig}`
+}
+
+const verifyCsrfToken = (raw) => {
+  const token = String(raw ?? '')
+  if (!token) return false
+  const dot = token.lastIndexOf('.')
+  if (dot < 0) return false
+  const body = token.slice(0, dot)
+  const sig = token.slice(dot + 1)
+  const expected = crypto.createHmac('sha256', CSRF_SECRET).update(body).digest('base64url')
+  if (sig.length !== expected.length) return false
+  try {
+    if (!crypto.timingSafeEqual(Buffer.from(sig, 'utf8'), Buffer.from(expected, 'utf8'))) return false
+  } catch {
+    return false
+  }
+  let parsed
+  try {
+    parsed = JSON.parse(Buffer.from(body, 'base64url').toString('utf8'))
+  } catch {
+    return false
+  }
+  if (typeof parsed.t !== 'number' || Date.now() - parsed.t > CSRF_TTL_MS) return false
+  return true
+}
+
+const allowedCorsOrigins = () => {
+  const raw = String(process.env.FRONTEND_ORIGIN ?? '')
+  const fromEnv = raw
+    .split(',')
+    .map((x) => x.trim())
+    .filter(Boolean)
+  const defaults = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:4173',
+    'http://127.0.0.1:4173',
+  ]
+  return [...new Set([...defaults, ...fromEnv])]
+}
+
 const app = express()
-app.use(cors())
+
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff')
+  res.setHeader('X-Frame-Options', 'DENY')
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+  if (NODE_ENV === 'production') {
+    res.setHeader('Strict-Transport-Security', 'max-age=15552000; includeSubDomains')
+  }
+  next()
+})
+
+app.use(
+  cors({
+    origin(origin, cb) {
+      if (!origin) {
+        cb(null, true)
+        return
+      }
+      cb(null, allowedCorsOrigins().includes(origin))
+    },
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'X-Admin-Token', 'X-CSRF-Token'],
+  }),
+)
 app.use(express.json({ limit: '2mb' }))
+
+app.get('/api/csrf-token', (_req, res) => {
+  res.json({ token: createCsrfToken() })
+})
+
+app.use((req, res, next) => {
+  const m = req.method
+  if (m === 'GET' || m === 'HEAD' || m === 'OPTIONS') {
+    next()
+    return
+  }
+  const hdr = req.headers['x-csrf-token']
+  const token = Array.isArray(hdr) ? hdr[0] : hdr
+  if (!verifyCsrfToken(String(token ?? ''))) {
+    res.status(403).json({ error: 'csrf_gecersiz' })
+    return
+  }
+  next()
+})
 
 const ADMIN_SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000
 
@@ -116,6 +290,12 @@ app.post('/api/admin/login', (req, res) => {
     res.status(503).json({ error: 'Yonetici girisi yapilandirilmamis (.env)' })
     return
   }
+  const ip = getClientIp(req)
+  const rateKey = `admin:${ip}`
+  if (isLoginBlocked(rateKey)) {
+    sendLoginRateLimited(res, rateKey)
+    return
+  }
   const email = normalizeEmail(req.body?.email)
   const password = String(req.body?.password ?? '')
     .trim()
@@ -125,9 +305,11 @@ app.post('/api/admin/login', (req, res) => {
     return
   }
   if (email !== ADMIN_EMAIL || !safeEqualPassword(password, ADMIN_PASSWORD)) {
+    recordLoginFail(rateKey)
     res.status(401).json({ error: 'e-posta veya sifre hatali' })
     return
   }
+  clearLoginFails(rateKey)
   res.json({ token: createAdminSessionToken(), email: ADMIN_EMAIL })
 })
 
@@ -392,6 +574,30 @@ const normalizeOrderStatus = (raw) => {
   return mapped || 'Yeni'
 }
 
+/** user_state.orders kayıtlarına order_fulfillment alanlarını ekler (müşteri /api/state ve /api/orders). */
+const enrichOrdersWithFulfillment = async (orders) => {
+  const list = Array.isArray(orders) ? orders : []
+  const orderIds = [...new Set(list.map((o) => String(o.id ?? '')).filter(Boolean))]
+  let fulfillMap = new Map()
+  if (orderIds.length) {
+    const fulfillResult = await pool.query(
+      'SELECT order_id, status, tracking_code, updated_at FROM order_fulfillment WHERE order_id = ANY($1::text[])',
+      [orderIds],
+    )
+    fulfillMap = new Map(fulfillResult.rows.map((row) => [row.order_id, row]))
+  }
+  return list.map((order) => {
+    const id = String(order.id ?? '')
+    const f = fulfillMap.get(id)
+    return {
+      ...order,
+      status: normalizeOrderStatus(f?.status ?? order.status ?? 'Yeni'),
+      trackingCode: String(f?.tracking_code ?? order.trackingCode ?? '').trim(),
+      fulfillmentUpdatedAt: f?.updated_at ? new Date(f.updated_at).toLocaleString('tr-TR') : order.fulfillmentUpdatedAt ?? null,
+    }
+  })
+}
+
 const collectOrdersFromStates = async () => {
   const result = await pool.query('SELECT email, state FROM user_state')
   const fulfillResult = await pool.query('SELECT order_id, customer_email, status, tracking_code, updated_at FROM order_fulfillment')
@@ -456,9 +662,25 @@ app.get('/api/state', async (req, res) => {
   }
   try {
     const state = await getStateByEmail(email)
-    res.json(state)
+    const orders = await enrichOrdersWithFulfillment(state.orders)
+    res.json({ ...state, orders })
   } catch {
     res.status(500).json({ error: 'durum okunamadi' })
+  }
+})
+
+app.get('/api/orders', async (req, res) => {
+  const email = normalizeEmail(req.query.email)
+  if (!email) {
+    res.status(400).json({ error: 'email gerekli' })
+    return
+  }
+  try {
+    const state = await getStateByEmail(email)
+    const orders = await enrichOrdersWithFulfillment(state.orders)
+    res.json(orders)
+  } catch {
+    res.status(500).json({ error: 'siparisler okunamadi' })
   }
 })
 
@@ -482,6 +704,79 @@ app.put('/api/state', async (req, res) => {
     res.json({ ok: true, state })
   } catch {
     res.status(500).json({ error: 'durum yazilamadi' })
+  }
+})
+
+app.post('/api/checkout/stock', async (req, res) => {
+  const items = Array.isArray(req.body?.items) ? req.body.items : []
+  if (!items.length) {
+    res.status(400).json({ error: 'items gerekli' })
+    return
+  }
+
+  const normalized = items
+    .map((item) => ({
+      brand: String(item?.brand ?? '').trim(),
+      model: String(item?.model ?? '').trim(),
+      quantity: Math.max(0, Math.floor(Number(item?.quantity ?? 0))),
+    }))
+    .filter((item) => item.brand && item.model && item.quantity > 0)
+
+  if (!normalized.length) {
+    res.status(400).json({ error: 'gecerli urun yok' })
+    return
+  }
+
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
+    const insufficient = []
+    for (const item of normalized) {
+      const found = await client.query(
+        `SELECT sku, stock FROM admin_products
+         WHERE LOWER(brand) = LOWER($1) AND LOWER(model) = LOWER($2)
+         ORDER BY updated_at DESC
+         LIMIT 1
+         FOR UPDATE`,
+        [item.brand, item.model],
+      )
+      if (!found.rowCount) {
+        insufficient.push({ brand: item.brand, model: item.model, requested: item.quantity, available: 0, reason: 'not_found' })
+        continue
+      }
+      const row = found.rows[0]
+      const available = Number(row.stock ?? 0)
+      if (available < item.quantity) {
+        insufficient.push({ brand: item.brand, model: item.model, requested: item.quantity, available, reason: 'insufficient' })
+      }
+    }
+
+    if (insufficient.length) {
+      await client.query('ROLLBACK')
+      res.status(409).json({ error: 'yetersiz_stok', items: insufficient })
+      return
+    }
+
+    for (const item of normalized) {
+      await client.query(
+        `UPDATE admin_products
+         SET stock = GREATEST(0, stock - $3), updated_at = NOW()
+         WHERE LOWER(brand) = LOWER($1) AND LOWER(model) = LOWER($2)`,
+        [item.brand, item.model, item.quantity],
+      )
+    }
+
+    await client.query('COMMIT')
+    res.json({ ok: true })
+  } catch {
+    try {
+      await client.query('ROLLBACK')
+    } catch {
+      // noop
+    }
+    res.status(500).json({ error: 'stok guncellenemedi' })
+  } finally {
+    client.release()
   }
 })
 
@@ -522,7 +817,8 @@ app.post('/api/auth/register', async (req, res) => {
       res.status(409).json({ error: 'bu e-posta zaten kayitli' })
       return
     }
-    await pool.query('INSERT INTO users (name, surname, email, password) VALUES ($1, $2, $3, $4)', [name, surname, email, password])
+    const passwordHash = hashUserPassword(password)
+    await pool.query('INSERT INTO users (name, surname, email, password) VALUES ($1, $2, $3, $4)', [name, surname, email, passwordHash])
     await getStateByEmail(email)
     res.status(201).json({ ok: true, user: { name, surname, email } })
   } catch {
@@ -539,6 +835,12 @@ app.post('/api/auth/login', async (req, res) => {
     res.status(400).json({ error: 'email ve sifre gerekli' })
     return
   }
+  const ip = getClientIp(req)
+  const rateKey = `user:${ip}:${email}`
+  if (isLoginBlocked(rateKey)) {
+    sendLoginRateLimited(res, rateKey)
+    return
+  }
   if (
     ADMIN_EMAIL &&
     ADMIN_PASSWORD &&
@@ -546,6 +848,7 @@ app.post('/api/auth/login', async (req, res) => {
     email === ADMIN_EMAIL &&
     safeEqualPassword(password, ADMIN_PASSWORD)
   ) {
+    clearLoginFails(rateKey)
     res.json({
       ok: true,
       user: { name: 'Yonetici', surname: 'Panel', email: ADMIN_EMAIL },
@@ -554,12 +857,25 @@ app.post('/api/auth/login', async (req, res) => {
     return
   }
   try {
-    const result = await pool.query('SELECT name, surname, email FROM users WHERE email = $1 AND password = $2', [email, password])
+    const result = await pool.query('SELECT name, surname, email, password FROM users WHERE email = $1', [email])
     if (!result.rowCount) {
+      recordLoginFail(rateKey)
       res.status(401).json({ error: 'e-posta veya sifre hatali' })
       return
     }
-    res.json({ ok: true, user: result.rows[0] })
+    const row = result.rows[0]
+    const stored = String(row.password ?? '')
+    if (!verifyUserPassword(password, stored)) {
+      recordLoginFail(rateKey)
+      res.status(401).json({ error: 'e-posta veya sifre hatali' })
+      return
+    }
+    if (!stored.startsWith('scrypt$')) {
+      const nextHash = hashUserPassword(password)
+      await pool.query('UPDATE users SET password = $2, updated_at = NOW() WHERE email = $1', [email, nextHash])
+    }
+    clearLoginFails(rateKey)
+    res.json({ ok: true, user: { name: row.name, surname: row.surname, email: row.email } })
   } catch {
     res.status(500).json({ error: 'giris yapilamadi' })
   }
@@ -634,9 +950,10 @@ app.post('/api/auth/reset/confirm', async (req, res) => {
       return
     }
 
+    const passwordHash = hashUserPassword(password)
     const result = await pool.query('UPDATE users SET password = $2, updated_at = NOW() WHERE email = $1 RETURNING name, surname, email', [
       email,
-      password,
+      passwordHash,
     ])
     if (!result.rowCount) {
       res.status(404).json({ error: 'kullanici bulunamadi' })
@@ -874,18 +1191,12 @@ app.get('/api/admin/dashboard', requireAdmin, async (_req, res) => {
         totalSales,
         orderCount,
         registeredCustomers,
-        visitorsHint: 'Kayitli musteri sayisi (Analytics entegrasyonu ile gercek ziyaretci eklenebilir)',
       },
       charts: { revenueByDay, revenueByWeek, revenueByMonth },
       alerts: {
         lowStock: lowStockResult.rows,
         pendingOrders,
         returnRequests,
-      },
-      notes: {
-        excel: 'Toplu Excel ice/disa aktarma: bir sonraki adimda xlsx sablonu ve import endpoint eklenebilir.',
-        efatura: 'E-fatura / PDF fatura: saglayici entegrasyonu (Uyumsoft, Logo vb.) ile baglanir.',
-        kargo: 'Kargo barkodu: ARAS / Yurtici API anahtarlari ile otomatik gonderi olusturma.',
       },
     })
   } catch {

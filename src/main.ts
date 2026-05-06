@@ -1,4 +1,6 @@
 import './style.css'
+import { mountBrandMarquee } from './brandMarqueeMount'
+import { mountSiteFooter } from './footerMount'
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <header class="topbar">
@@ -13,6 +15,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
         </button>
         <aside id="menu-panel" class="contents-panel" aria-label="İçerikler">
           <h2 data-i18n="menu.contents">İçerikler</h2>
+          <a href="#" class="contents-home-link" data-i18n="menu.home">Anasayfa</a>
 
           <section class="contents-group">
             <h3 data-i18n="menu.categories">Kategoriler</h3>
@@ -23,29 +26,50 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 
           <section class="contents-group">
             <h3 data-i18n="menu.popularBrands">Popüler Markalar</h3>
-            <a href="#">Ray-Ban</a>
-            <a href="#">Inesta</a>
-            <a href="#">Osse</a>
-            <a href="#">Mustang</a>
-            <a href="#">Vogue</a>
-            <a href="#">Prada</a>
-            <a href="#">Persol</a>
-            <a href="#">INESTA FASHION</a>
-            <a href="#">Emporio Armani</a>
+            <a href="#" class="popular-brand-link" data-brand="Ray-Ban">Ray-Ban</a>
+            <a href="#" class="popular-brand-link" data-brand="Prada">Prada</a>
+            <a href="#" class="popular-brand-link" data-brand="Persol">Persol</a>
+            <a href="#" class="popular-brand-link" data-brand="Bottega Veneta">Bottega Veneta</a>
+            <a href="#" class="popular-brand-link" data-brand="Olivio & Co">Olivio & Co</a>
+            <a href="#" class="popular-brand-link" data-brand="Mess Frames">Mess Frames</a>
+            <a href="#" class="popular-brand-link" data-brand="Miu Miu">Miu Miu</a>
+            <a href="#" class="popular-brand-link" data-brand="Gast">Gast</a>
+            <a href="#" class="popular-brand-link" data-brand="Gucci">Gucci</a>
+            <a href="#" class="popular-brand-link" data-brand="Saint Laurent">Saint Laurent</a>
+            <a href="#" class="popular-brand-link" data-brand="Loewe">Loewe</a>
+            <a href="#" class="popular-brand-link" data-brand="Prada Linea Rossa">Prada Linea Rossa</a>
+            <a href="#" class="popular-brand-link" data-brand="Dolce&Gabbana">Dolce&Gabbana</a>
+            <a href="#" class="popular-brand-link" data-brand="Matsuda">Matsuda</a>
+            <a href="#" class="popular-brand-link" data-brand="Hermossa">Hermossa</a>
+            <a href="#" class="popular-brand-link" data-brand="Burberry">Burberry</a>
+            <a href="#" class="popular-brand-link" data-brand="Off-White">Off-White</a>
+            <a href="#" class="popular-brand-link" data-brand="Izipizi">Izipizi</a>
+            <a href="#" class="popular-brand-link" data-brand="Roshambo Eyewear">Roshambo Eyewear</a>
+            <a href="#" class="popular-brand-link" data-brand="Looklight">Looklight</a>
+            <a href="#" class="popular-brand-link" data-brand="Babiators">Babiators</a>
+            <a href="#" class="popular-brand-link" data-brand="Kietla">Kietla</a>
           </section>
 
           <section class="contents-group">
             <h3 data-i18n="menu.help">Yardım & Destek</h3>
-            <a href="#" data-i18n="menu.contact">İletişim</a>
-            <a href="#" data-i18n="menu.orderTracking">Sipariş Takibi</a>
-            <a href="#" class="admin-open">Yönetim Paneli</a>
+            <a href="#" class="support-open" data-i18n="menu.contact">İletişim</a>
+            <a href="#" class="orders-open" data-i18n="menu.orderTracking">Sipariş Takibi</a>
           </section>
         </aside>
       </div>
-      <label class="search-wrap" aria-label="Ürün ara">
-        <span class="search-icon">⌕</span>
-        <input type="search" placeholder="Ürün ara..." data-i18n-placeholder="top.searchPlaceholder" />
-      </label>
+      <div class="top-search" id="top-search">
+        <label class="search-wrap" aria-label="Ürün ara">
+          <span class="search-icon">⌕</span>
+          <input
+            type="search"
+            id="top-product-search"
+            autocomplete="off"
+            placeholder="Ürün ara..."
+            data-i18n-placeholder="top.searchPlaceholder"
+          />
+        </label>
+        <div id="top-search-results" class="top-search-results" role="listbox" aria-label="Arama sonuçları" hidden></div>
+      </div>
       <div class="account-menu-wrap">
         <button type="button" class="text-link auth-open" aria-label="Üye Girişi / Üye Ol">Üye Girişi / Üye Ol</button>
         <div class="account-menu" id="account-menu" aria-hidden="true">
@@ -53,6 +77,11 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
         </div>
       </div>
       <a href="#" class="icon-link favorites-open" aria-label="Favoriler">&#9825;</a>
+      <div class="top-order-actions" role="group" aria-label="Sipariş kısayolları">
+        <button type="button" class="icon-link icon-link--labeled orders-open" aria-label="Tüm siparişlerim">
+          <span class="icon-link-label-text" data-i18n="top.myOrders">Tüm Siparişlerim</span>
+        </button>
+      </div>
       <button type="button" class="icon-link cart-open" aria-label="Sepetim">🛒<span id="cart-badge" class="cart-badge">0</span></button>
     </nav>
   </header>
@@ -78,9 +107,8 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
         <p class="intro">
           <span data-i18n="hero.intro">Kadın, erkek ve çocuk seçkimizde siyahın asaleti beyazın yalınlığıyla buluşuyor. Gün boyu konfor sunan premium çerçevelerle stilinizi rafine bir dokunuşla tamamlayın.</span>
         </p>
-        <a href="#" class="cta" data-i18n="hero.cta">Koleksiyonu İncele</a>
+        <a href="#" class="cta" data-i18n="hero.cta">Alışverişe Başla</a>
       </div>
-      <a href="#" class="hero-banner-cta" data-i18n="hero.quickCta">İNCELE</a>
     </section>
   </main>
 
@@ -93,114 +121,95 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       </label>
     </div>
     <div class="category-filters">
-      <select><option>Marka</option><option>Ray-Ban</option><option>Versace</option><option>Miu Miu</option></select>
-      <select><option>Çerçeve Şekli</option><option>Kedi Gözü</option><option>Aviator</option><option>Yuvarlak</option></select>
-      <select><option>Çerçeve Rengi</option><option>Siyah</option><option>Kahverengi</option><option>Gold</option></select>
-      <select><option>Köprü Uzunluğu</option><option>14</option><option>16</option></select>
-      <select><option>Sap Uzunluğu</option><option>135</option><option>145</option></select>
-      <select><option>Cam Ölçüsü</option><option>52</option><option>56</option></select>
-      <select><option>Fiyat Aralığı</option><option>0-5.000 TL</option><option>5.000-10.000 TL</option><option>10.000+ TL</option></select>
-      <select><option>Önerilen</option><option>Çok Satan</option><option>Yeni Gelen</option></select>
+      <select id="filter-brand"><option value="">Marka</option></select>
+      <select id="filter-shape"><option value="">Çerçeve Şekli</option></select>
+      <select id="filter-frame-color"><option value="">Çerçeve Rengi</option></select>
+      <select id="filter-lens-size"><option value="">Cam Ölçüsü</option></select>
+      <select id="filter-price-range"><option value="">Fiyat Aralığı</option></select>
+      <select id="filter-recommended"><option value="">Önerilen</option></select>
     </div>
     <div id="category-products" class="category-products"></div>
   </section>
 
-  <section class="best-sellers" aria-label="Cok Satanlar">
-    <div class="best-sellers-head">
-      <h2>🔥 Çok Satanlar</h2>
-      <a href="#" class="see-all">Tümünü Gör</a>
+  <div class="home-shop-ribbon">
+    <div id="brand-marquee-root"></div>
+
+    <div class="home-bestsellers-block">
+    <section class="best-sellers" aria-label="Cok Satanlar">
+      <div class="best-sellers-head">
+        <h2>🔥 Çok Satanlar</h2>
+        <a href="#" class="see-all">Tümünü Gör</a>
+      </div>
+      <div class="best-sellers-grid" id="best-sellers-grid"></div>
+    </section>
+
     </div>
-    <div class="best-sellers-grid">
-      <article class="product-card">
-        <span class="product-badge">Çok Satan</span>
-        <div class="product-image">
-          <img src="/products/product-1.png" alt="Ray-Ban RB2198 Kahverengi Unisex Gunes Gozlugu" />
-        </div>
-        <h3>RAY-BAN</h3>
-        <p class="product-model">RB2198 Kahverengi Unisex Gunes Gozlugu</p>
-        <p class="product-price">10.050 TL</p>
-        <button type="button" class="add-to-cart-btn" data-brand="RAY-BAN" data-model="RB2198 Kahverengi Unisex Gunes Gozlugu" data-price="10.050 TL" data-image="/products/product-1.png">Sepete Ekle</button>
-      </article>
 
-      <article class="product-card">
-        <span class="product-badge">Çok Satan</span>
-        <div class="product-image">
-          <img src="/products/product-2.png" alt="Ray-Ban RB3547 Siyah Kadin Gunes Gozlugu" />
-        </div>
-        <h3>RAY-BAN</h3>
-        <p class="product-model">RB3547 Siyah Kadin Gunes Gozlugu</p>
-        <p class="product-price">10.050 TL</p>
-        <button type="button" class="add-to-cart-btn" data-brand="RAY-BAN" data-model="RB3547 Siyah Kadin Gunes Gozlugu" data-price="10.050 TL" data-image="/products/product-2.png">Sepete Ekle</button>
-      </article>
-
-      <article class="product-card">
-        <span class="product-badge">Çok Satan</span>
-        <div class="product-image">
-          <img src="/products/product-3.png" alt="Burberry BE4437U Kahverengi Erkek Gunes Gozlugu" />
-        </div>
-        <h3>BURBERRY</h3>
-        <p class="product-model">BE4437U Kahverengi Erkek Gunes Gozlugu</p>
-        <p class="product-price">15.820 TL</p>
-        <button type="button" class="add-to-cart-btn" data-brand="BURBERRY" data-model="BE4437U Kahverengi Erkek Gunes Gozlugu" data-price="15.820 TL" data-image="/products/product-3.png">Sepete Ekle</button>
-      </article>
-
-      <article class="product-card">
-        <span class="product-badge">Çok Satan</span>
-        <div class="product-image">
-          <img src="/products/product-4.png" alt="Miu Miu MU 56ZS Gold Kadin Gunes Gozlugu" />
-        </div>
-        <h3>MIU MIU</h3>
-        <p class="product-model">MU 56ZS Gold Kadin Gunes Gozlugu</p>
-        <p class="product-price">20.610 TL</p>
-        <button type="button" class="add-to-cart-btn" data-brand="MIU MIU" data-model="MU 56ZS Gold Kadin Gunes Gozlugu" data-price="20.610 TL" data-image="/products/product-4.png">Sepete Ekle</button>
-      </article>
-
-      <article class="product-card">
-        <span class="product-badge">Çok Satan</span>
-        <div class="product-image">
-          <img src="/products/product-5.png" alt="Versace VE2198 Siyah Kadin Gunes Gozlugu" />
-        </div>
-        <h3>VERSACE</h3>
-        <p class="product-model">VE2198 Siyah Kadin Gunes Gozlugu</p>
-        <p class="product-price">15.710 TL</p>
-        <button type="button" class="add-to-cart-btn" data-brand="VERSACE" data-model="VE2198 Siyah Kadin Gunes Gozlugu" data-price="15.710 TL" data-image="/products/product-5.png">Sepete Ekle</button>
-      </article>
-
-      <article class="product-card">
-        <span class="product-badge">Çok Satan</span>
-        <div class="product-image">
-          <img src="/products/product-6.png" alt="Mess Frames Indoor Kahverengi Unisex Gunes Gozlugu" />
-        </div>
-        <h3>MESS FRAMES</h3>
-        <p class="product-model">Indoor Kahverengi Unisex Gunes Gozlugu</p>
-        <p class="product-price">2.190 TL</p>
-        <button type="button" class="add-to-cart-btn" data-brand="MESS FRAMES" data-model="Indoor Kahverengi Unisex Gunes Gozlugu" data-price="2.190 TL" data-image="/products/product-6.png">Sepete Ekle</button>
-      </article>
-    </div>
-  </section>
+    <div id="home-bestsellers-footer-root" class="home-bestsellers-footer-wrap" aria-label="Site alt bilgi"></div>
+  </div>
 
   <section id="account-section" class="account-section">
     <aside class="account-sidebar">
-      <a href="#" class="account-nav-item profile-open">Hesap Ayarlarım</a>
-      <a href="#" class="account-nav-item orders-open">Siparişlerim</a>
-      <a href="#" class="account-nav-item return-open">İade Taleplerim</a>
-      <a href="#" class="account-nav-item">İptal Taleplerim</a>
-      <a href="#" class="account-nav-item cart-page-open">Alışveriş Sepetim</a>
-      <a href="#" class="account-nav-item favorites-open">Favorilerim</a>
-      <a href="#" class="account-nav-item address-open">Adres Defterim</a>
-      <a href="#" class="account-nav-item">Koleksiyonlarım</a>
-      <a href="#" class="account-nav-item">Yorumlarım</a>
-      <a href="#" class="account-nav-item">İstek Listelerim</a>
-      <a href="#" class="account-nav-item">Fiyat Alarm Listem</a>
-      <a href="#" class="account-nav-item">Stok Alarm Listem</a>
-      <a href="#" class="account-nav-item">Sözleşmelerim</a>
-      <a href="#" class="account-nav-item gift-open">Para Puan / Hediye Çeki</a>
-      <a href="#" class="account-nav-item support-open">Destek Taleplerim</a>
-      <button type="button" id="logout-btn" class="account-nav-item logout-btn">Güvenli Çıkış</button>
+      <button type="button" class="account-nav-item account-home-btn">
+        <span class="account-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 4l9 5.5V20a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1V9.5z"/></svg></span>
+        <span class="account-nav-text">Ana Sayfa</span>
+      </button>
+      <a href="#" class="account-nav-item profile-open">
+        <span class="account-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></span>
+        <span class="account-nav-text">Hesap Ayarlarım</span>
+      </a>
+      <a href="#" class="account-nav-item orders-open">
+        <span class="account-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 1 0 6 8c0 7-3 7-3 7h18s-3 0-3-7"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></span>
+        <span class="account-nav-text">Siparişlerim</span>
+      </a>
+      <a href="#" class="account-nav-item return-open">
+        <span class="account-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.9-3.4L23 10M1 14l4.6 4.4A9 9 0 0 0 20.5 15"/></svg></span>
+        <span class="account-nav-text">İade Taleplerim</span>
+      </a>
+      <a href="#" class="account-nav-item cancel-open">
+        <span class="account-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.9-3.4L23 10M1 14l4.6 4.4A9 9 0 0 0 20.5 15"/></svg></span>
+        <span class="account-nav-text">İptal Taleplerim</span>
+      </a>
+      <a href="#" class="account-nav-item cart-page-open">
+        <span class="account-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/><path d="M1 1h4l1.7 10.4A2 2 0 0 0 8.6 14H19a2 2 0 0 0 2-1.6L23 6H6"/></svg></span>
+        <span class="account-nav-text">Alışveriş Sepetim</span>
+      </a>
+      <a href="#" class="account-nav-item favorites-open">
+        <span class="account-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 1 0-7.8 7.8L12 21.2l8.8-8.8a5.5 5.5 0 0 0 0-7.8z"/></svg></span>
+        <span class="account-nav-text">Favorilerim</span>
+      </a>
+      <a href="#" class="account-nav-item address-open">
+        <span class="account-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+        <span class="account-nav-text">Adres Defterim</span>
+      </a>
+      <a href="#" class="account-nav-item reviews-open">
+        <span class="account-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-3 3v-3H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M13 8H7M17 12H7"/><path d="M18 3h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1l-2 2V8h-1a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h2z"/></svg></span>
+        <span class="account-nav-text">Yorumlarım</span>
+      </a>
+      <a href="#" class="account-nav-item wishlist-open">
+        <span class="account-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.3 7L12 12l8.7-5M12 22V12"/></svg></span>
+        <span class="account-nav-text">İstek Listelerim</span>
+      </a>
+      <a href="#" class="account-nav-item price-alarm-open">
+        <span class="account-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></span>
+        <span class="account-nav-text">Fiyat Alarm Listem</span>
+      </a>
+      <a href="#" class="account-nav-item gift-open">
+        <span class="account-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg></span>
+        <span class="account-nav-text">Para Puan / Hediye Çeki</span>
+      </a>
+      <a href="#" class="account-nav-item support-open">
+        <span class="account-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="M4.9 4.9l14.2 14.2M19.1 4.9L4.9 19.1"/></svg></span>
+        <span class="account-nav-text">Destek Taleplerim</span>
+      </a>
+      <button type="button" id="logout-btn" class="account-nav-item logout-btn">
+        <span class="account-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></span>
+        <span class="account-nav-text">Güvenli Çıkış</span>
+      </button>
     </aside>
 
     <div class="account-main">
-      <h2 class="account-title">MERHABA <span id="account-name">KULLANICI</span></h2>
+      <h2 class="account-title">MERHABA <span id="account-name">MİSAFİR</span></h2>
       <p class="account-subtitle">HOŞGELDİNİZ</p>
       <p class="account-text">
         "Hesabım" sayfasından siparişlerinizi ve arıza/iade/değişim işlemlerinizi takip edebilir,
@@ -214,8 +223,22 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
         <article class="account-card address-open"><span>📍</span><p>Adres Defterim</p></article>
         <article class="account-card gift-open"><span>💵</span><p>Hediye Çeklerim</p></article>
         <article class="account-card return-open"><span>↻</span><p>İade Taleplerim</p></article>
+        <article class="account-card cancel-open"><span>⊘</span><p>İptal Taleplerim</p></article>
+        <article class="account-card reviews-open"><span>💬</span><p>Yorumlarım</p></article>
+        <article class="account-card wishlist-open"><span>📋</span><p>İstek Listelerim</p></article>
         <article class="account-card cart-page-open"><span>🛒</span><p>Alışveriş Sepetim</p></article>
       </div>
+      <div class="account-fab-stack wishlist-fab-stack">
+        <a class="wishlist-fab wishlist-fab-whatsapp" href="https://wa.me/905555555555" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp ile yazın">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.881 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+        </a>
+        <button type="button" class="wishlist-fab wishlist-fab-top" id="account-dashboard-scroll-top" aria-label="Sayfanın başına dön">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="account-dashboard-footer" aria-label="Site footer">
+      <div id="account-dashboard-footer-root"></div>
     </div>
   </section>
 
@@ -235,6 +258,31 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
     <div id="favorites-list" class="favorites-list"></div>
   </section>
 
+  <section id="price-alarm-section" class="stock-alarm-section">
+    <button type="button" class="support-back-btn section-back-btn" data-back-target="account" aria-label="Geri dön">← Geri</button>
+    <div class="favorites-head">
+      <h2>Fiyat Alarm Listem</h2>
+    </div>
+    <div class="stock-alarm-panel">
+      <p class="stock-alarm-hint">
+        Ürün seçin ve takip etmek istediğiniz hedef fiyatı (TL) girin. Örnek kampanya fiyatı, hedefin altına indiğinde satır vurgulanır (örnek gösterim).
+      </p>
+      <form id="price-alarm-form" class="stock-alarm-form">
+        <label>
+          <span>Ürün</span>
+          <select id="price-alarm-product" required></select>
+        </label>
+        <label>
+          <span>Hedef fiyat (TL ve altı için uyar)</span>
+          <input type="number" id="price-alarm-target" min="1" step="1" placeholder="örn. 5000" required />
+        </label>
+        <button type="submit" class="stock-alarm-add-btn">Ekle</button>
+      </form>
+      <p id="price-alarm-form-status" class="stock-alarm-form-status" role="status"></p>
+    </div>
+    <div id="price-alarm-list" class="favorites-list"></div>
+  </section>
+
   <section id="admin-section" class="admin-section">
     <div class="admin-layout">
       <aside class="admin-sidebar" aria-label="Yönetim menüsü">
@@ -246,13 +294,11 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
         <button type="button" class="admin-nav" data-admin-tab="marketing">5. Pazarlama</button>
         <button type="button" class="admin-nav" data-admin-tab="finance">6. Ödeme & Finans</button>
         <button type="button" class="admin-nav" data-admin-tab="cms">7. İçerik (CMS)</button>
-        <button type="button" class="admin-nav" data-admin-tab="technical">8. Teknik</button>
         <button type="button" class="admin-site-back" id="admin-close-btn">Siteye dön</button>
       </aside>
       <div class="admin-main">
         <div id="admin-login-gate" class="admin-login-gate">
           <h3>Panel girişi</h3>
-          <p class="admin-login-note">API <code>http://localhost:4000</code> üzerinde çalışmalı. Geliştirmede: <code>npm run dev:all</code> (aynı anda API + site). <strong>404</strong> genelde 4000 portunda eski/başka bir uygulama vardır — o süreci kapatıp <code>dev:all</code>’ı yeniden başlatın. Hesap: <code>.env</code> → <strong>ADMIN_EMAIL</strong>, <strong>ADMIN_PASSWORD</strong>.</p>
           <form id="admin-login-form" novalidate>
           <label class="admin-token-label">
             <span>E-posta</span>
@@ -289,16 +335,9 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
                 <h3>Hızlı uyarılar</h3>
                 <div id="admin-alerts-body"></div>
               </div>
-              <div class="admin-notes">
-                <h3>Yol haritası / entegrasyonlar</h3>
-                <ul id="admin-notes-list" class="admin-notes-list"></ul>
-              </div>
             </div>
             <div class="admin-tab-pane" data-admin-pane="products">
               <h2 class="admin-pane-title">Ürün ve stok yönetimi</h2>
-              <p class="admin-tools-intro">
-                Katalogdaki ürünler ilk açılışta senkronlanır. Toplu fiyat için yüzde girin; dijital ürün satışı için indirme URL sütununu kullanın.
-              </p>
               <div class="admin-bulk-row">
                 <label>Toplu fiyat (%)<input type="number" id="admin-bulk-percent" step="0.1" placeholder="örn: 5" /></label>
                 <button type="button" id="admin-bulk-price-btn" class="admin-btn secondary">Tüm fiyatları güncelle</button>
@@ -326,9 +365,6 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
             </div>
             <div class="admin-tab-pane" data-admin-pane="orders">
               <h2 class="admin-pane-title">Sipariş ve sevkiyat</h2>
-              <p class="admin-tools-intro">
-                Durum: Yeni → Hazırlanıyor → Kargolandı → Teslim Edildi / İptal / İade. Takip numarasını kaydedin (kargo API entegrasyonu için hazır alan).
-              </p>
               <div class="admin-table-wrap admin-table-wrap--wide">
                 <table class="admin-table" id="admin-orders-table">
                   <thead>
@@ -349,10 +385,6 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
             </div>
             <div class="admin-tab-pane" data-admin-pane="customers">
               <h2 class="admin-pane-title">Müşteri ve üyelik yönetimi</h2>
-              <p class="admin-tools-intro">
-                Kayıtlı müşterilerin sipariş özeti, sepette kalan ürünler ve tahmini harcama panelde birleştirilir. VIP / bayi için grup ve indirim yüzdesi atayın.
-                Mağazadan yorum gönderimi eklendiğinde kayıtlar aşağıdaki tabloya düşer; şimdilik yorumlar admin veya API ile oluşturulabilir.
-              </p>
               <h3>Müşteri kartları</h3>
               <div class="admin-table-wrap admin-table-wrap--wide">
                 <table class="admin-table">
@@ -392,9 +424,6 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
             </div>
             <div class="admin-tab-pane" data-admin-pane="marketing">
               <h2 class="admin-pane-title">Pazarlama ve promosyon</h2>
-              <p class="admin-tools-intro">
-                Yüzdesel veya sabit tutar kuponları; kampanya kuralları (ör. ücretsiz kargo eşiği). Sepet hatırlatma e-postası için SMTP (.env) gerekir — önce “önizle” ile aday sayısını kontrol edin.
-              </p>
               <div class="admin-two-col">
                 <div class="admin-col-card">
                   <h3>Kupon kodları</h3>
@@ -430,9 +459,6 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
             </div>
             <div class="admin-tab-pane" data-admin-pane="finance">
               <h2 class="admin-pane-title">Ödeme ve finans</h2>
-              <p class="admin-tools-intro">
-                Sanal POS sağlayıcı adı (entegrasyon sonrası API anahtarları .env üzerinden). Taksit satırları JSON veya tabloda düzenlenir. KDV: ürün listesinde her ürün için 1 / 10 / 20 seçilir; varsayılan oran aşağıdadır.
-              </p>
               <div class="admin-form-block">
                 <h3>Ödeme yöntemleri</h3>
                 <label>Sanal POS (Iyzico / PayTR)<input type="text" id="admin-pay-provider" placeholder="boş veya iyzico" /></label>
@@ -494,31 +520,6 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
                 <label>Başlık<input type="text" id="admin-cms-page-title" /></label>
                 <textarea id="admin-cms-page-body" class="admin-textarea" rows="8"></textarea>
                 <button type="button" class="admin-btn" id="admin-cms-page-save">Sayfayı kaydet</button>
-              </div>
-            </div>
-            <div class="admin-tab-pane" data-admin-pane="technical">
-              <h2 class="admin-pane-title">Teknik ve güvenlik</h2>
-              <p class="admin-tools-intro">
-                Rol ayrımı ve yedekleme şimdilik metin olarak dokümante edilir; gerçek RBAC için ayrı kullanıcı tablosu gerekir. Aşağıdaki loglar panel üzerinden yapılan kayıtları listeler.
-              </p>
-              <div class="admin-form-block">
-                <h3>SEO</h3>
-                <label>Site başlığı (meta)<input type="text" id="admin-seo-title" /></label>
-                <label>Meta açıklama<textarea id="admin-seo-desc" class="admin-textarea" rows="2"></textarea></label>
-                <label>robots.txt içeriği<textarea id="admin-robots" class="admin-textarea" rows="4"></textarea></label>
-                <label>Site haritası notu<textarea id="admin-sitemap-note" class="admin-textarea" rows="2"></textarea></label>
-                <h3>Güvenlik ve yedek</h3>
-                <label>Roller (referans metin)<textarea id="admin-security-roles" class="admin-textarea" rows="3"></textarea></label>
-                <label>Yedekleme notu<textarea id="admin-backup-note" class="admin-textarea" rows="2"></textarea></label>
-                <button type="button" class="admin-btn" id="admin-save-technical-btn">SEO ve güvenlik notlarını kaydet</button>
-              </div>
-              <h3>İşlem günlüğü (audit)</h3>
-              <button type="button" class="admin-btn secondary" id="admin-audit-refresh">Yenile</button>
-              <div class="admin-table-wrap admin-table-wrap--wide">
-                <table class="admin-table">
-                  <thead><tr><th>Zaman</th><th>İşlem</th><th>Detay</th></tr></thead>
-                  <tbody id="admin-audit-body"></tbody>
-                </table>
               </div>
             </div>
           </div>
@@ -684,43 +685,139 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
     </div>
   </section>
 
-  <section id="support-section" class="support-section">
-    <button type="button" id="support-back-btn" class="support-back-btn section-back-btn" data-back-target="account" aria-label="Geri dön">← Geri</button>
-    <h2>Destek Taleplerim</h2>
-    <div class="support-top-actions">
-      <button type="button" class="support-secondary" id="new-support-btn">Yeni Talep Oluştur</button>
+  <section id="cancel-section" class="cancel-section">
+    <button type="button" class="support-back-btn section-back-btn" data-back-target="account" aria-label="Geri dön">← Geri</button>
+    <div class="cancel-info-bar">
+      <p>Bu sayfadan sipariş iptali yapılmaktadır, mevcut taleplerinizin durumunu anlık olarak takip edebilirsiniz.</p>
+      <p>Süreçle ilgili her adımda size e-posta veya SMS ile bilgi vereceğiz.</p>
     </div>
-    <form class="support-form" id="support-form">
-      <label>
-        <span>Konu</span>
-        <select id="support-subject" required>
+    <div id="cancel-toolbar" class="cancel-toolbar">
+      <button type="button" id="cancel-new-request-btn" class="cancel-new-request-btn">Yeni Talep Oluştur</button>
+    </div>
+    <div id="cancel-form-panel" class="cancel-form-panel" style="display: none">
+      <form id="cancel-request-form" class="cancel-request-form">
+        <div class="cancel-form-panel-head">
+          <button type="button" id="cancel-form-dismiss" class="cancel-vazgec-btn">Vazgeç</button>
+        </div>
+        <label class="cancel-order-label" for="cancel-order-select">Sipariş No</label>
+        <select id="cancel-order-select" name="cancelOrder" required>
           <option value="">Seçiniz</option>
-          <option>Sipariş</option>
-          <option>Ürün</option>
-          <option>İade</option>
-          <option>Diğer</option>
+        </select>
+        <button type="submit" class="cancel-submit-btn">Talebi Gönder</button>
+      </form>
+    </div>
+    <div id="cancel-empty" class="cancel-empty">
+      <div class="cancel-empty-icon" aria-hidden="true">↺</div>
+      <h3 class="cancel-empty-title">Geçmiş İptal Kaydı Bulunamadı</h3>
+      <p class="cancel-empty-text">Şu anda oluşturduğunuz iptal kaydı bulunamamaktadır.</p>
+      <button type="button" id="cancel-shop-btn" class="cancel-shop-btn">Alışverişe Başla</button>
+    </div>
+    <div id="cancel-list-wrap" class="cancel-list-wrap" style="display: none">
+      <h3 class="cancel-list-heading">İptal taleplerim</h3>
+      <ul id="cancel-list" class="cancel-list"></ul>
+    </div>
+  </section>
+
+  <section id="reviews-section" class="reviews-section">
+    <button type="button" class="support-back-btn section-back-btn" data-back-target="account" aria-label="Geri dön">← Geri</button>
+    <h2 class="reviews-section-title">Yorumlarım</h2>
+    <div class="reviews-empty-card">
+      <div class="reviews-empty-icon" aria-hidden="true">
+        <svg class="reviews-empty-svg" viewBox="0 0 64 64" width="72" height="72" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 22h20a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H28l-8 6v-6h-2a4 4 0 0 1-4-4V26a4 4 0 0 1 4-4z" />
+          <path d="M36 18h12a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-4l-4 3v-3h-2" />
+        </svg>
+      </div>
+      <p class="reviews-empty-heading">Yorumunuz Bulunmamaktadır.</p>
+      <button type="button" id="reviews-shop-btn" class="reviews-shop-btn">Alışverişe Başla</button>
+    </div>
+  </section>
+
+  <section id="wishlist-section" class="wishlist-section">
+    <button type="button" class="support-back-btn section-back-btn" data-back-target="account" aria-label="Geri dön">← Geri</button>
+    <h2 class="wishlist-page-title">İstek Listelerim</h2>
+    <form id="wishlist-form" class="wishlist-form">
+      <label class="wishlist-field">
+        <span>Önem Derecesi</span>
+        <select id="wishlist-importance" required>
+          <option value="">Önem Derecesi Seçiniz</option>
+          <option value="Düşük">Düşük</option>
+          <option value="Normal">Normal</option>
+          <option value="Yüksek">Yüksek</option>
+          <option value="Kritik">Kritik</option>
         </select>
       </label>
-      <label>
-        <span>Başlık</span>
-        <input type="text" id="support-title" required />
+      <div class="wishlist-field">
+        <span class="wishlist-field-span">Tarih</span>
+        <div class="wishlist-date-row">
+          <label class="wishlist-date-part">
+            <span class="wishlist-sublabel">Gün</span>
+            <select id="wishlist-day" required></select>
+          </label>
+          <label class="wishlist-date-part">
+            <span class="wishlist-sublabel">Ay</span>
+            <select id="wishlist-month" required></select>
+          </label>
+          <label class="wishlist-date-part">
+            <span class="wishlist-sublabel">Yıl</span>
+            <select id="wishlist-year" required></select>
+          </label>
+        </div>
+      </div>
+      <label class="wishlist-field">
+        <span>Tanım</span>
+        <input type="text" id="wishlist-title" autocomplete="off" required />
       </label>
-      <label>
-        <span>Detay</span>
-        <textarea id="support-detail" rows="5"></textarea>
+      <label class="wishlist-field">
+        <span>Açıklama</span>
+        <textarea id="wishlist-desc" rows="3"></textarea>
       </label>
-      <label>
-        <span>Dosya Seç</span>
-        <input type="file" />
-      </label>
-      <div class="support-actions">
-        <button type="submit" class="support-submit">Gönder</button>
-        <button type="button" class="support-cancel">Vazgeç</button>
+      <label class="wishlist-check"><input type="checkbox" id="wishlist-default" /> Varsayılan</label>
+      <label class="wishlist-check"><input type="checkbox" id="wishlist-active" checked /> Aktif</label>
+      <div class="wishlist-form-actions">
+        <button type="button" id="wishlist-vazgec" class="wishlist-btn-vazgec">Vazgeç</button>
+        <button type="submit" class="wishlist-btn-kaydet">Kaydet</button>
       </div>
     </form>
-    <div class="support-history">
-      <h3>Geçmiş Taleplerim</h3>
-      <ul id="support-history-list"></ul>
+    <div class="wishlist-table-wrap">
+      <table class="wishlist-table">
+        <thead>
+          <tr>
+            <th class="wishlist-th-check"><input type="checkbox" disabled aria-label="Seç" /></th>
+            <th>Tanım</th>
+            <th>Durum</th>
+            <th>Önem Derecesi</th>
+            <th class="wishlist-th-action"></th>
+          </tr>
+        </thead>
+        <tbody id="wishlist-table-body"></tbody>
+      </table>
+    </div>
+    <div class="wishlist-page-footer" aria-label="Site footer">
+      <div id="wishlist-footer-root"></div>
+    </div>
+    <div class="wishlist-fab-stack">
+      <a class="wishlist-fab wishlist-fab-whatsapp" href="https://wa.me/905555555555" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp ile yazın">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.881 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+      </a>
+      <button type="button" class="wishlist-fab wishlist-fab-top" id="wishlist-scroll-top" aria-label="Sayfanın başına dön">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <section id="support-section" class="support-section">
+    <button type="button" id="support-back-btn" class="support-back-btn section-back-btn" data-back-target="account" aria-label="Geri dön">← Geri</button>
+    <h2>İletişim</h2>
+    <div class="support-contact-card" aria-label="İletişim bilgileri">
+      <p class="support-contact-line">
+        <strong>E-posta:</strong>
+        <a href="mailto:ilaydaDefne@gmail.com">ilaydaDefne@gmail.com</a>
+      </p>
+      <p class="support-contact-line">
+        <strong>Tel:</strong>
+        <a href="tel:+905331233333">+905331233333</a>
+      </p>
     </div>
   </section>
 
@@ -930,6 +1027,23 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   </div>
 `
 
+mountSiteFooter(document.querySelector<HTMLElement>('#account-dashboard-footer-root'), {
+  formId: 'account-dashboard-newsletter-form',
+  emailInputId: 'account-dashboard-newsletter-email',
+  statusId: 'account-dashboard-newsletter-status',
+})
+mountSiteFooter(document.querySelector<HTMLElement>('#wishlist-footer-root'), {
+  formId: 'wishlist-newsletter-form',
+  emailInputId: 'wishlist-newsletter-email',
+  statusId: 'wishlist-newsletter-status',
+})
+mountBrandMarquee(document.querySelector<HTMLElement>('#brand-marquee-root'))
+mountSiteFooter(document.querySelector<HTMLElement>('#home-bestsellers-footer-root'), {
+  formId: 'home-bestsellers-newsletter-form',
+  emailInputId: 'home-bestsellers-newsletter-email',
+  statusId: 'home-bestsellers-newsletter-status',
+})
+
 const menuTrigger = document.querySelector<HTMLButtonElement>('.menu-trigger')
 const menuPanel = document.querySelector<HTMLElement>('#menu-panel')
 const brandLink = document.querySelector<HTMLAnchorElement>('.brand')
@@ -938,16 +1052,22 @@ const accountMenuWrap = document.querySelector<HTMLElement>('.account-menu-wrap'
 const accountMenu = document.querySelector<HTMLElement>('#account-menu')
 const topLogoutBtn = document.querySelector<HTMLButtonElement>('#top-logout-btn')
 const authModal = document.querySelector<HTMLElement>('#auth-modal')
+const topProductSearch = document.querySelector<HTMLInputElement>('#top-product-search')
+const topSearchResults = document.querySelector<HTMLElement>('#top-search-results')
 const heroSection = document.querySelector<HTMLElement>('.hero-content')
 const categorySection = document.querySelector<HTMLElement>('#category-section')
-const bestSellersSection = document.querySelector<HTMLElement>('.best-sellers')
+const homeShopRibbon = document.querySelector<HTMLElement>('.home-shop-ribbon')
 const supportSection = document.querySelector<HTMLElement>('#support-section')
 const returnSection = document.querySelector<HTMLElement>('#return-section')
+const cancelSection = document.querySelector<HTMLElement>('#cancel-section')
+const reviewsSection = document.querySelector<HTMLElement>('#reviews-section')
+const wishlistSection = document.querySelector<HTMLElement>('#wishlist-section')
 const profileSection = document.querySelector<HTMLElement>('#profile-section')
 const addressSection = document.querySelector<HTMLElement>('#address-section')
 const giftSection = document.querySelector<HTMLElement>('#gift-section')
 const categoryTitle = document.querySelector<HTMLElement>('#category-title')
 const accountSection = document.querySelector<HTMLElement>('#account-section')
+const accountNameEl = document.querySelector<HTMLElement>('#account-name')
 const logoutBtn = document.querySelector<HTMLButtonElement>('#logout-btn')
 const authTabs = document.querySelectorAll<HTMLButtonElement>('.auth-tab')
 const panes = {
@@ -961,16 +1081,48 @@ const loginSubmitBtn = document.querySelector<HTMLButtonElement>('#login-submit-
 const googleSigninButtons = document.querySelectorAll<HTMLButtonElement>('.google-signin')
 const statusEl = document.querySelector<HTMLElement>('#auth-status')
 const categoryLinks = document.querySelectorAll<HTMLAnchorElement>('.category-link')
+const popularBrandLinks = document.querySelectorAll<HTMLAnchorElement>('.popular-brand-link')
+const filterBrand = document.querySelector<HTMLSelectElement>('#filter-brand')
+const filterShape = document.querySelector<HTMLSelectElement>('#filter-shape')
+const filterFrameColor = document.querySelector<HTMLSelectElement>('#filter-frame-color')
+const filterLensSize = document.querySelector<HTMLSelectElement>('#filter-lens-size')
+const filterPriceRange = document.querySelector<HTMLSelectElement>('#filter-price-range')
+const filterRecommended = document.querySelector<HTMLSelectElement>('#filter-recommended')
 const supportOpenItems = document.querySelectorAll<HTMLElement>('.support-open')
 const ordersOpenItems = document.querySelectorAll<HTMLElement>('.orders-open')
 const favoritesOpenItems = document.querySelectorAll<HTMLElement>('.favorites-open')
+const priceAlarmOpenItems = document.querySelectorAll<HTMLElement>('.price-alarm-open')
 const returnOpenItems = document.querySelectorAll<HTMLElement>('.return-open')
+const cancelOpenItems = document.querySelectorAll<HTMLElement>('.cancel-open')
+const reviewsOpenItems = document.querySelectorAll<HTMLElement>('.reviews-open')
+const wishlistOpenItems = document.querySelectorAll<HTMLElement>('.wishlist-open')
 const profileOpenItems = document.querySelectorAll<HTMLElement>('.profile-open')
 const addressOpenItems = document.querySelectorAll<HTMLElement>('.address-open')
 const giftOpenItems = document.querySelectorAll<HTMLElement>('.gift-open')
 const cartPageOpenItems = document.querySelectorAll<HTMLElement>('.cart-page-open')
 const returnShopBtn = document.querySelector<HTMLButtonElement>('#return-shop-btn')
 const returnCancelBtn = document.querySelector<HTMLButtonElement>('#return-cancel-btn')
+const cancelNewRequestBtn = document.querySelector<HTMLButtonElement>('#cancel-new-request-btn')
+const cancelFormPanel = document.querySelector<HTMLElement>('#cancel-form-panel')
+const cancelRequestForm = document.querySelector<HTMLFormElement>('#cancel-request-form')
+const cancelOrderSelect = document.querySelector<HTMLSelectElement>('#cancel-order-select')
+const cancelFormDismissBtn = document.querySelector<HTMLButtonElement>('#cancel-form-dismiss')
+const cancelEmptyEl = document.querySelector<HTMLElement>('#cancel-empty')
+const cancelListWrap = document.querySelector<HTMLElement>('#cancel-list-wrap')
+const cancelListEl = document.querySelector<HTMLElement>('#cancel-list')
+const cancelShopBtn = document.querySelector<HTMLButtonElement>('#cancel-shop-btn')
+const reviewsShopBtn = document.querySelector<HTMLButtonElement>('#reviews-shop-btn')
+const wishlistForm = document.querySelector<HTMLFormElement>('#wishlist-form')
+const wishlistImportance = document.querySelector<HTMLSelectElement>('#wishlist-importance')
+const wishlistDay = document.querySelector<HTMLSelectElement>('#wishlist-day')
+const wishlistMonth = document.querySelector<HTMLSelectElement>('#wishlist-month')
+const wishlistYear = document.querySelector<HTMLSelectElement>('#wishlist-year')
+const wishlistTitle = document.querySelector<HTMLInputElement>('#wishlist-title')
+const wishlistDesc = document.querySelector<HTMLTextAreaElement>('#wishlist-desc')
+const wishlistDefault = document.querySelector<HTMLInputElement>('#wishlist-default')
+const wishlistActive = document.querySelector<HTMLInputElement>('#wishlist-active')
+const wishlistVazgecBtn = document.querySelector<HTMLButtonElement>('#wishlist-vazgec')
+const wishlistTableBody = document.querySelector<HTMLElement>('#wishlist-table-body')
 const supportCancelBtn = document.querySelector<HTMLButtonElement>('.support-cancel')
 const giftCreateForm = document.querySelector<HTMLFormElement>('#gift-create-form')
 const giftAmountInput = document.querySelector<HTMLInputElement>('#gift-amount-input')
@@ -1013,6 +1165,7 @@ const shoppingCartCompleteBtn = document.querySelector<HTMLButtonElement>('.shop
 const ordersSection = document.querySelector<HTMLElement>('#orders-section')
 const ordersListEl = document.querySelector<HTMLElement>('#orders-list')
 const favoritesSection = document.querySelector<HTMLElement>('#favorites-section')
+const priceAlarmSection = document.querySelector<HTMLElement>('#price-alarm-section')
 const adminSection = document.querySelector<HTMLElement>('#admin-section')
 const adminLoginGate = document.querySelector<HTMLElement>('#admin-login-gate')
 const adminPanelBody = document.querySelector<HTMLElement>('#admin-panel-body')
@@ -1025,7 +1178,6 @@ const adminChartDay = document.querySelector<HTMLElement>('#admin-chart-day')
 const adminChartWeek = document.querySelector<HTMLElement>('#admin-chart-week')
 const adminChartMonth = document.querySelector<HTMLElement>('#admin-chart-month')
 const adminAlertsBody = document.querySelector<HTMLElement>('#admin-alerts-body')
-const adminNotesList = document.querySelector<HTMLElement>('#admin-notes-list')
 const adminProductsBody = document.querySelector<HTMLElement>('#admin-products-body')
 const adminOrdersBody = document.querySelector<HTMLElement>('#admin-orders-body')
 const adminBulkPercent = document.querySelector<HTMLInputElement>('#admin-bulk-percent')
@@ -1033,8 +1185,12 @@ const adminBulkPriceBtn = document.querySelector<HTMLButtonElement>('#admin-bulk
 const adminSyncCatalogBtn = document.querySelector<HTMLButtonElement>('#admin-sync-catalog-btn')
 const adminExcelHint = document.querySelector<HTMLElement>('#admin-excel-hint')
 const adminInvoiceHint = document.querySelector<HTMLElement>('#admin-invoice-hint')
-const adminOpenItems = document.querySelectorAll<HTMLElement>('.admin-open')
 const favoritesListEl = document.querySelector<HTMLElement>('#favorites-list')
+const priceAlarmListEl = document.querySelector<HTMLElement>('#price-alarm-list')
+const priceAlarmForm = document.querySelector<HTMLFormElement>('#price-alarm-form')
+const priceAlarmProductSelect = document.querySelector<HTMLSelectElement>('#price-alarm-product')
+const priceAlarmTargetInput = document.querySelector<HTMLInputElement>('#price-alarm-target')
+const priceAlarmFormStatus = document.querySelector<HTMLElement>('#price-alarm-form-status')
 const checkoutModal = document.querySelector<HTMLElement>('#checkout-modal')
 const checkoutForm = document.querySelector<HTMLFormElement>('#checkout-form')
 const checkoutName = document.querySelector<HTMLInputElement>('#checkout-name')
@@ -1068,6 +1224,24 @@ let editingSupportIndex: number | null = null
 let currentCategoryView: CategoryKey = 'kadin'
 const categoryProducts = document.querySelector<HTMLElement>('#category-products')
 let activeProductDetail: CatalogItem | null = null
+
+type CategoryFilterState = {
+  brand: string
+  frameShape: string
+  frameColor: string
+  lensSize: string
+  priceRange: string
+  recommended: string
+}
+
+const categoryFilters: CategoryFilterState = {
+  brand: '',
+  frameShape: '',
+  frameColor: '',
+  lensSize: '',
+  priceRange: '',
+  recommended: '',
+}
 
 type User = {
   name: string
@@ -1117,6 +1291,30 @@ type OrderRecord = {
   total: string
   itemCount: number
   items: Array<{ brand: string; model: string; quantity: number; priceText: string }>
+  status?: string
+  trackingCode?: string
+  fulfillmentUpdatedAt?: string | null
+}
+
+type CancelRequestRecord = {
+  id: string
+  orderId: string
+  note: string
+  createdAt: string
+  status: string
+}
+
+type WishlistEntryRecord = {
+  id: string
+  importance: string
+  day: string
+  month: string
+  year: string
+  title: string
+  description: string
+  isDefault: boolean
+  isActive: boolean
+  createdAt: string
 }
 
 type FavoriteRecord = {
@@ -1126,6 +1324,17 @@ type FavoriteRecord = {
   price: string
   image: string
   category: CategoryKey
+}
+
+type PriceAlertRecord = {
+  id: string
+  brand: string
+  model: string
+  price: string
+  image: string
+  category: CategoryKey
+  targetPriceTl: number
+  addedAt: string
 }
 
 type CartItem = {
@@ -1240,9 +1449,37 @@ const catalogItems: CatalogItem[] = [
   {
     category: 'kadin',
     brand: 'Ray-Ban',
+    model: 'RB2198 Kahverengi Unisex Gunes Gozlugu',
+    price: '10.050 TL',
+    image: '/products/product-1.png',
+  },
+  {
+    category: 'kadin',
+    brand: 'Ray-Ban',
     model: 'RB3547 Siyah Kadin Gunes Gozlugu',
     price: '10.050 TL',
-    image: '/products-kadin-15.png',
+    image: '/products/product-2.png',
+  },
+  {
+    category: 'kadin',
+    brand: 'Miu Miu',
+    model: 'MU 56ZS Gold Kadin Gunes Gozlugu',
+    price: '20.610 TL',
+    image: '/products/product-4.png',
+  },
+  {
+    category: 'kadin',
+    brand: 'Versace',
+    model: 'VE2198 Siyah Kadin Gunes Gozlugu',
+    price: '15.710 TL',
+    image: '/products/product-5.png',
+  },
+  {
+    category: 'kadin',
+    brand: 'Mess Frames',
+    model: 'Indoor Kahverengi Unisex Gunes Gozlugu',
+    price: '2.190 TL',
+    image: '/products/product-6.png',
   },
   {
     category: 'kadin',
@@ -1334,6 +1571,13 @@ const catalogItems: CatalogItem[] = [
     model: 'BE4349 Yesil Erkek Gunes Gozlugu',
     price: '12.310 TL',
     image: '/products-erkek-12.png',
+  },
+  {
+    category: 'erkek',
+    brand: 'Burberry',
+    model: 'BE4437U Kahverengi Erkek Gunes Gozlugu',
+    price: '15.820 TL',
+    image: '/products/product-3.png',
   },
   {
     category: 'erkek',
@@ -1483,6 +1727,9 @@ const REMEMBER_KEY = 'di_remembered'
 const CART_KEY = 'di_cart'
 const ORDERS_KEY = 'di_orders'
 const FAVORITES_KEY = 'di_favorites'
+const PRICE_ALERTS_KEY = 'di_price_alerts'
+const CANCEL_REQUESTS_KEY = 'di_cancel_requests'
+const WISHLISTS_KEY = 'di_wishlist_entries'
 const GIFT_POINTS_KEY = 'di_gift_points'
 const GIFT_MIN_AMOUNT = 20
 const GIFT_STEP = 10
@@ -1512,6 +1759,22 @@ const API_BASE_URL = resolveApiBaseUrl()
 const ADMIN_TOKEN_KEY = 'di_admin_token'
 let pendingResetEmail = ''
 
+let csrfTokenCache: string | null = null
+
+const fetchCsrfToken = async (): Promise<string> => {
+  if (csrfTokenCache) return csrfTokenCache
+  const res = await fetch(`${API_BASE_URL}/csrf-token`)
+  if (!res.ok) throw new Error('CSRF token alınamadı')
+  const body = (await res.json()) as { token?: string }
+  if (!body.token) throw new Error('CSRF token alınamadı')
+  csrfTokenCache = body.token
+  return csrfTokenCache
+}
+
+const invalidateCsrfToken = () => {
+  csrfTokenCache = null
+}
+
 const getSessionEmail = (): string => (localStorage.getItem(SESSION_KEY) ?? '').trim().toLowerCase()
 
 const pushCommerceStateToBackend = async () => {
@@ -1524,9 +1787,10 @@ const pushCommerceStateToBackend = async () => {
   const giftPoints = Number(localStorage.getItem(GIFT_POINTS_KEY) ?? 0)
 
   try {
+    const csrf = await fetchCsrfToken()
     await fetch(`${API_BASE_URL}/state`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
       body: JSON.stringify({ email, cart, orders, favorites, giftPoints }),
     })
   } catch {
@@ -1558,14 +1822,36 @@ const pullCommerceStateFromBackend = async () => {
   }
 }
 
-const pullUserProfileFromBackend = async () => {
-  const email = getSessionEmail()
-  if (!email) return
+const reserveCheckoutStock = async (items: CartItem[]): Promise<{ ok: true } | { ok: false; message: string }> => {
+  if (!items.length) return { ok: false, message: 'Sepetiniz boş.' }
   try {
-    const user = await authApiRequest<UserProfile>('/auth/me', 'GET', { email })
-    writeUserInfo(user)
+    const csrf = await fetchCsrfToken()
+    const response = await fetch(`${API_BASE_URL}/checkout/stock`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
+      body: JSON.stringify({
+        items: items.map((item) => ({ brand: item.brand, model: item.model, quantity: Math.max(1, Math.floor(item.quantity || 1)) })),
+      }),
+    })
+    if (response.ok) return { ok: true }
+    if (response.status === 409) {
+      let message = 'Bazi urunlerde stok yetersiz.'
+      try {
+        const data = (await response.json()) as {
+          items?: Array<{ brand?: string; model?: string; requested?: number; available?: number }>
+        }
+        const first = data.items?.[0]
+        if (first?.brand && first?.model) {
+          message = `${first.brand} ${first.model} icin stok yetersiz (istenen: ${first.requested ?? '-'}, mevcut: ${first.available ?? 0}).`
+        }
+      } catch {
+        // fallback message above
+      }
+      return { ok: false, message }
+    }
+    return { ok: false, message: 'Stok kontrolu yapilamadi. Lutfen tekrar deneyin.' }
   } catch {
-    localStorage.removeItem(USER_INFO_KEY)
+    return { ok: false, message: 'Sunucuya ulasilamadi. Lutfen tekrar deneyin.' }
   }
 }
 
@@ -1581,8 +1867,42 @@ const readUserInfo = (): UserProfile | undefined => {
   }
 }
 
+const syncAccountDashboardGreeting = () => {
+  if (!accountNameEl) return
+  const email = getSessionEmail()
+  const info = readUserInfo()
+  if (email && info && info.email.trim().toLowerCase() === email) {
+    const first = (info.name ?? '').trim()
+    if (first) {
+      accountNameEl.textContent = first.toLocaleUpperCase('tr-TR')
+      return
+    }
+    const sur = (info.surname ?? '').trim()
+    if (sur) {
+      accountNameEl.textContent = sur.toLocaleUpperCase('tr-TR')
+      return
+    }
+    accountNameEl.textContent = 'KULLANICI'
+    return
+  }
+  accountNameEl.textContent = 'MİSAFİR'
+}
+
 const writeUserInfo = (user: UserProfile) => {
   localStorage.setItem(USER_INFO_KEY, JSON.stringify(user))
+  syncAccountDashboardGreeting()
+}
+
+const pullUserProfileFromBackend = async () => {
+  const email = getSessionEmail()
+  if (!email) return
+  try {
+    const user = await authApiRequest<UserProfile>('/auth/me', 'GET', { email })
+    writeUserInfo(user)
+  } catch {
+    localStorage.removeItem(USER_INFO_KEY)
+    syncAccountDashboardGreeting()
+  }
 }
 
 const getAdminToken = (): string => sessionStorage.getItem(ADMIN_TOKEN_KEY) ?? ''
@@ -1596,9 +1916,10 @@ type AdminLoginPostResult =
 
 const postAdminLogin = async (email: string, password: string): Promise<AdminLoginPostResult> => {
   try {
+    const csrf = await fetchCsrfToken()
     const res = await fetch(`${API_BASE_URL}/admin/login`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
       body: JSON.stringify({ email, password }),
     })
     const text = await res.text()
@@ -1626,21 +1947,34 @@ const postAdminLogin = async (email: string, password: string): Promise<AdminLog
 }
 
 const adminFetch = async (path: string, init?: RequestInit): Promise<Response> => {
+  const method = (init?.method ?? 'GET').toUpperCase()
   const headers = new Headers(init?.headers)
   headers.set('x-admin-token', getAdminToken())
   if (init?.body != null && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json')
+  }
+  if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
+    headers.set('X-CSRF-Token', await fetchCsrfToken())
   }
   return fetch(`${API_BASE_URL}${path}`, { ...init, headers })
 }
 
 const authApiRequest = async <T>(path: string, method: 'GET' | 'POST', payload?: Record<string, unknown>): Promise<T> => {
   const requestUrl = method === 'GET' && payload ? `${API_BASE_URL}${path}?${new URLSearchParams(payload as Record<string, string>).toString()}` : `${API_BASE_URL}${path}`
-  const response = await fetch(requestUrl, {
-    method,
-    headers: method === 'POST' ? { 'Content-Type': 'application/json' } : undefined,
-    body: method === 'POST' ? JSON.stringify(payload ?? {}) : undefined,
-  })
+  let response: Response
+  try {
+    const headers: Record<string, string> =
+      method === 'POST' ? { 'Content-Type': 'application/json', 'X-CSRF-Token': await fetchCsrfToken() } : {}
+    response = await fetch(requestUrl, {
+      method,
+      headers: method === 'POST' ? headers : undefined,
+      body: method === 'POST' ? JSON.stringify(payload ?? {}) : undefined,
+    })
+  } catch {
+    throw new Error(
+      'Sunucuya baglanilamadi. API ayakta mi? Proje klasorunde: npm run dev:all (veya ayri: npm run dev:api + npm run dev).',
+    )
+  }
   const text = await response.text()
   let data = {} as { error?: string } & Partial<T>
   if (text) {
@@ -1671,9 +2005,17 @@ const supportApiRequest = async <T>(
       ? `${API_BASE_URL}${path}${payload ? `?${new URLSearchParams(payload as Record<string, string>).toString()}` : ''}`
       : `${API_BASE_URL}${path}`
 
+  const hdrs: Record<string, string> = {}
+  if (method === 'POST' || method === 'PUT') {
+    hdrs['Content-Type'] = 'application/json'
+    hdrs['X-CSRF-Token'] = await fetchCsrfToken()
+  }
+  if (method === 'DELETE') {
+    hdrs['X-CSRF-Token'] = await fetchCsrfToken()
+  }
   const response = await fetch(requestUrl, {
     method,
-    headers: method === 'POST' || method === 'PUT' ? { 'Content-Type': 'application/json' } : undefined,
+    headers: Object.keys(hdrs).length ? hdrs : undefined,
     body: method === 'POST' || method === 'PUT' ? JSON.stringify(payload ?? {}) : undefined,
   })
   const text = await response.text()
@@ -1718,36 +2060,158 @@ const parsePrice = (priceText: string): number => {
 const formatPrice = (price: number): string =>
   `${price.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TL`
 
+const toAsciiLower = (value: string): string =>
+  value
+    .toLocaleLowerCase('tr-TR')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+
+const pickByHash = <T,>(items: T[], hash: number): T => items[Math.abs(hash) % items.length]
+
+const inferFrameColor = (text: string): string => {
+  if (text.includes('siyah') || text.includes('black')) return 'Siyah'
+  if (text.includes('kahve') || text.includes('kahverengi') || text.includes('brown')) return 'Kahverengi'
+  if (text.includes('yesil') || text.includes('green') || text.includes('hunter')) return 'Yeşil'
+  if (text.includes('mavi') || text.includes('blue')) return 'Mavi'
+  if (text.includes('pembe') || text.includes('pink')) return 'Pembe'
+  if (text.includes('kirmizi') || text.includes('red')) return 'Kırmızı'
+  if (text.includes('sari') || text.includes('yellow') || text.includes('hardal')) return 'Sarı'
+  if (text.includes('mor') || text.includes('purple')) return 'Mor'
+  if (text.includes('bej') || text.includes('beige') || text.includes('cream')) return 'Bej'
+  if (text.includes('turuncu') || text.includes('orange')) return 'Turuncu'
+  if (text.includes('gold') || text.includes('altin')) return 'Gold'
+  if (text.includes('silver') || text.includes('gumus')) return 'Silver'
+  if (text.includes('crystal') || text.includes('seffaf') || text.includes('clear')) return 'Şeffaf'
+  return 'Siyah'
+}
+
+const inferLensColor = (text: string): string => {
+  if (text.includes('siyah') || text.includes('black')) return 'Siyah'
+  if (text.includes('kahve') || text.includes('kahverengi') || text.includes('brown')) return 'Kahverengi'
+  if (text.includes('yesil') || text.includes('green')) return 'Yeşil'
+  if (text.includes('mavi') || text.includes('blue')) return 'Mavi'
+  if (text.includes('pembe') || text.includes('pink')) return 'Pembe'
+  if (text.includes('fume') || text.includes('gri') || text.includes('grey') || text.includes('antrasit')) return 'Füme'
+  return 'Füme'
+}
+
+const inferFrameShape = (text: string): string => {
+  if (text.includes('round') || text.includes('yuvarlak')) return 'Yuvarlak'
+  if (text.includes('hearts') || text.includes('heart')) return 'Kalp'
+  if (text.includes('flower')) return 'Çiçek'
+  if (text.includes('keyhole')) return 'Geometrik'
+  if (text.includes('aviator') || text.includes('pilot')) return 'Aviator'
+  if (text.includes('cat') || text.includes('kedi')) return 'Kedi Gözü'
+  if (text.includes('sport') || text.includes('outdoor')) return 'Siperlik'
+  if (text.includes('classic') || text.includes('wayfarer')) return 'Kare'
+  return ''
+}
+
+const inferFrameMaterial = (text: string): string => {
+  if (text.includes('metal') || text.includes('gold') || text.includes('silver') || text.includes('altin')) return 'Metal'
+  if (text.includes('asetat') || text.includes('acetate')) return 'Asetat'
+  if (text.includes('tr90')) return 'TR90'
+  if (text.includes('polarize')) return 'TR90'
+  return 'Asetat'
+}
+
+const clamp = (value: number, min: number, max: number): number => Math.min(max, Math.max(min, value))
+
+const inferBridgeLength = (category: CategoryKey, frameShape: string, text: string, seed: number): number => {
+  const byCategory: Record<CategoryKey, { min: number; max: number; base: number }> = {
+    kadin: { min: 15, max: 20, base: 17 },
+    erkek: { min: 16, max: 21, base: 18 },
+    cocuk: { min: 13, max: 17, base: 14 },
+  }
+  const cfg = byCategory[category]
+  let bridge = cfg.base
+
+  if (frameShape === 'Aviator' || frameShape === 'Geometrik') bridge += 1
+  if (frameShape === 'Yuvarlak' || frameShape === 'Oval') bridge -= 1
+  if (frameShape === 'Siperlik') bridge += 1
+
+  if (text.includes('metal') || text.includes('gold') || text.includes('silver') || text.includes('altin')) bridge += 1
+  if (text.includes('classic') || text.includes('round') || text.includes('hearts')) bridge -= 1
+  if (text.includes('sport') || text.includes('outdoor') || text.includes('keyhole')) bridge += 1
+
+  bridge += seed % 2
+  return clamp(bridge, cfg.min, cfg.max)
+}
+
+/** Ana sayfa "Çok Satanlar" ve Önerilen filtresinde bu ürünler "Çok Satan" olarak geçer. */
+const BEST_SELLER_PCM_KEYS = new Set(
+  [
+    'ray-ban__rb2198 kahverengi unisex gunes gozlugu',
+    'ray-ban__rb3547 siyah kadin gunes gozlugu',
+    'burberry__be4437u kahverengi erkek gunes gozlugu',
+    'miu miu__mu 56zs gold kadin gunes gozlugu',
+    'versace__ve2198 siyah kadin gunes gozlugu',
+    'mess frames__indoor kahverengi unisex gunes gozlugu',
+  ].map((k) => k.toLowerCase()),
+)
+
 const buildProductSpecs = (product: CatalogItem): ProductSpecs => {
-  const text = `${product.brand} ${product.model}`.toLowerCase()
-  const seed = (product.brand.length * 7 + product.model.length * 3) % 5
-  const shapes = ['Yuvarlak', 'Kare', 'Aviator', 'Kedi Gozu', 'Geometrik']
-  const lensTypes = ['UV400', 'Polarize', 'Degrade', 'Mavi Isik Filtreli', 'Anti-Refle']
-  const lensColors = ['Siyah', 'Kahverengi', 'Fume', 'Mavi', 'Yesil']
-  const frameColors = ['Siyah', 'Kahverengi', 'Yesil', 'Mavi', 'Pembe']
-  const frameMaterials = ['Asetat', 'Metal', 'Titanyum', 'Kemik', 'TR90']
+  const text = toAsciiLower(`${product.brand} ${product.model}`)
+  const seed = [...text].reduce((sum, ch) => sum + ch.charCodeAt(0), 0)
   const years = ['2021', '2022', '2023', '2024', '2025']
-  const ekartmanBase = 48 + ((product.model.length + product.brand.length) % 8)
-  const bridge = 15 + (seed % 4)
-  const temple = 135 + seed * 2
-  const lensSize = ekartmanBase
+  const rangesByCategory: Record<CategoryKey, { lensMin: number; lensMax: number; bridgeMin: number; bridgeMax: number; templeMin: number; templeMax: number }> = {
+    kadin: { lensMin: 52, lensMax: 58, bridgeMin: 16, bridgeMax: 19, templeMin: 135, templeMax: 145 },
+    erkek: { lensMin: 54, lensMax: 62, bridgeMin: 17, bridgeMax: 20, templeMin: 140, templeMax: 150 },
+    cocuk: { lensMin: 40, lensMax: 49, bridgeMin: 13, bridgeMax: 16, templeMin: 120, templeMax: 132 },
+  }
+  const range = rangesByCategory[product.category]
+  const baseLensSize = range.lensMin + (seed % (range.lensMax - range.lensMin + 1))
+  const temple = range.templeMin + (seed % (range.templeMax - range.templeMin + 1))
   const numericPrice = parsePrice(product.price)
   const priceRange = numericPrice < 5000 ? '0-5.000 TL' : numericPrice < 10000 ? '5.000-10.000 TL' : '10.000+ TL'
-  const recommendedOptions = ['Cok Satan', 'Yeni Gelen', 'Onerilen', 'Editor Secimi', 'Trend']
+  const lensType = text.includes('polarize')
+    ? 'Polarize'
+    : text.includes('ayna') || text.includes('mirrored')
+      ? 'Aynalı'
+      : text.includes('degrade')
+        ? 'Degrade'
+        : 'UV400'
+  const pcmKey = `${product.brand}__${product.model}`.toLowerCase()
+  const recommended = BEST_SELLER_PCM_KEYS.has(pcmKey)
+    ? 'Çok Satan'
+    : numericPrice >= 20000
+      ? 'Editör Seçimi'
+      : numericPrice >= 10000
+        ? 'Trend'
+        : product.category === 'cocuk'
+          ? 'Popüler'
+          : 'Çok Satan'
+  const fallbackShapes = ['Kare', 'Oval', 'Yuvarlak', 'Aviator', 'Kedi Gözü', 'Dikdörtgen', 'Geometrik']
+  const inferredShape = inferFrameShape(text)
+  const frameShape = inferredShape || pickByHash(fallbackShapes, seed)
+  const bridge = inferBridgeLength(product.category, frameShape, text, seed)
+  const shapeLensOffset: Record<string, number> = {
+    Yuvarlak: -1,
+    Oval: -2,
+    Kare: 1,
+    Dikdörtgen: 2,
+    Aviator: 1,
+    'Kedi Gözü': 0,
+    Geometrik: 1,
+    Siperlik: 2,
+    Kalp: -1,
+    Çiçek: -1,
+  }
+  const lensSize = clamp(baseLensSize + (shapeLensOffset[frameShape] ?? 0), range.lensMin, range.lensMax)
 
   return {
     ekartman: `${lensSize}-${temple}-${bridge}`,
-    frameColor: frameColors[(seed + 3) % frameColors.length],
-    bridge: `${bridge} mm`,
-    temple: `${temple} mm`,
-    lensSize: `${lensSize} mm`,
+    frameColor: inferFrameColor(text),
+    bridge: String(bridge),
+    temple: String(temple),
+    lensSize: String(lensSize),
     priceRange,
-    recommended: recommendedOptions[seed],
-    lensType: lensTypes[seed],
-    lensColor: lensColors[(seed + 2) % lensColors.length],
-    frameShape: text.includes('round') || text.includes('yuvarlak') ? 'Yuvarlak' : shapes[seed],
-    frameMaterial: frameMaterials[(seed + 1) % frameMaterials.length],
-    year: years[(seed + 3) % years.length],
+    recommended,
+    lensType,
+    lensColor: inferLensColor(text),
+    frameShape,
+    frameMaterial: inferFrameMaterial(text),
+    year: pickByHash(years, seed),
   }
 }
 
@@ -1936,9 +2400,76 @@ const readOrders = (): OrderRecord[] => {
   }
 }
 
+const escapeHtml = (value: string): string =>
+  value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+
 const writeOrders = (orders: OrderRecord[]) => {
   localStorage.setItem(ORDERS_KEY, JSON.stringify(orders))
   void pushCommerceStateToBackend()
+}
+
+const readCancelRequests = (): CancelRequestRecord[] => {
+  const raw = localStorage.getItem(CANCEL_REQUESTS_KEY)
+  if (!raw) return []
+  try {
+    const items = JSON.parse(raw) as CancelRequestRecord[]
+    if (!Array.isArray(items)) return []
+    return items.filter((x) => x && typeof x.id === 'string' && typeof x.orderId === 'string')
+  } catch {
+    return []
+  }
+}
+
+const writeCancelRequests = (rows: CancelRequestRecord[]) => {
+  localStorage.setItem(CANCEL_REQUESTS_KEY, JSON.stringify(rows))
+}
+
+const escapeCancelNote = (s: string): string =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;')
+
+const populateCancelOrderSelect = () => {
+  if (!cancelOrderSelect) return
+  const prev = cancelOrderSelect.value
+  const orders = readOrders()
+  cancelOrderSelect.innerHTML =
+    '<option value="">Seçiniz</option>' +
+    orders.map((o) => `<option value="${o.id}">${o.id} — ${o.total}</option>`).join('')
+  if (prev && orders.some((o) => o.id === prev)) cancelOrderSelect.value = prev
+}
+
+const closeCancelFormPanel = () => {
+  if (cancelFormPanel) cancelFormPanel.style.display = 'none'
+  cancelRequestForm?.reset()
+  const tb = document.querySelector<HTMLElement>('#cancel-toolbar')
+  if (tb) tb.style.display = 'flex'
+}
+
+const renderCancelSection = () => {
+  populateCancelOrderSelect()
+  const rows = readCancelRequests()
+  if (!rows.length) {
+    if (cancelEmptyEl) cancelEmptyEl.style.display = 'block'
+    if (cancelListWrap) cancelListWrap.style.display = 'none'
+    if (cancelListEl) cancelListEl.innerHTML = ''
+    closeCancelFormPanel()
+    return
+  }
+  if (cancelEmptyEl) cancelEmptyEl.style.display = 'none'
+  if (cancelListWrap) cancelListWrap.style.display = 'block'
+  if (!cancelListEl) return
+  cancelListEl.innerHTML = rows
+    .map(
+      (r) => `
+    <li class="cancel-list-item">
+      <div>
+        <strong>Sipariş ${r.orderId}</strong>
+        <p class="cancel-list-meta">${new Date(r.createdAt).toLocaleString('tr-TR')} · ${r.status}</p>
+        ${r.note ? `<p class="cancel-list-note">${escapeCancelNote(r.note)}</p>` : ''}
+      </div>
+      <button type="button" class="cancel-remove-btn" data-id="${r.id}">Kaldır</button>
+    </li>`,
+    )
+    .join('')
 }
 
 const saveCurrentCartAsOrder = () => {
@@ -1948,8 +2479,9 @@ const saveCurrentCartAsOrder = () => {
   const shippingPrice = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : DEFAULT_SHIPPING_PRICE
   const total = subtotal + shippingPrice
   const orders = readOrders()
+  const orderId = `SP-${Date.now().toString().slice(-6)}`
   const order: OrderRecord = {
-    id: `SP-${Date.now().toString().slice(-6)}`,
+    id: orderId,
     createdAt: new Date().toLocaleString('tr-TR'),
     total: formatPrice(total),
     itemCount: getCartCount(items),
@@ -1959,9 +2491,29 @@ const saveCurrentCartAsOrder = () => {
       quantity: item.quantity,
       priceText: item.priceText,
     })),
+    status: 'Yeni',
+    trackingCode: orderId,
+    fulfillmentUpdatedAt: null,
   }
   orders.unshift(order)
   writeOrders(orders)
+}
+
+const formatOrderTrackingHtml = (raw: string): string => {
+  const t = raw.trim()
+  if (!t) return '<span class="order-tracking-empty">—</span>'
+  if (/^https?:\/\//i.test(t)) {
+    try {
+      const u = new URL(t)
+      if (u.protocol !== 'http:' && u.protocol !== 'https:') return escapeHtml(t)
+      const href = escapeHtml(u.href)
+      const label = escapeHtml(t)
+      return `<a href="${href}" class="order-tracking-link" target="_blank" rel="noopener noreferrer">${label}</a>`
+    } catch {
+      return escapeHtml(t)
+    }
+  }
+  return `<span class="order-tracking-code">${escapeHtml(t)}</span>`
 }
 
 const renderOrders = () => {
@@ -1976,13 +2528,20 @@ const renderOrders = () => {
       (order) => `
       <article class="order-card">
         <div class="order-card-head">
-          <strong>${order.id}</strong>
-          <span>${order.createdAt}</span>
+          <strong>${escapeHtml(order.id)}</strong>
+          <span>${escapeHtml(order.createdAt)}</span>
         </div>
-        <p class="order-card-meta">Toplam Urun: ${order.itemCount} - Toplam Tutar: ${order.total}</p>
+        <dl class="order-card-status">
+          <div><dt>Durum</dt><dd>${escapeHtml(order.status ?? 'Yeni')}</dd></div>
+          <div><dt>Takip no</dt><dd>${formatOrderTrackingHtml((order.trackingCode ?? '').trim() || order.id)}</dd></div>
+        </dl>
+        <p class="order-card-meta">Toplam Urun: ${order.itemCount} - Toplam Tutar: ${escapeHtml(order.total)}</p>
         <ul>
           ${order.items
-            .map((item) => `<li>${item.brand} ${item.model} x${item.quantity} <span>${item.priceText}</span></li>`)
+            .map(
+              (item) =>
+                `<li>${escapeHtml(item.brand)} ${escapeHtml(item.model)} x${item.quantity} <span>${escapeHtml(item.priceText)}</span></li>`,
+            )
             .join('')}
         </ul>
       </article>
@@ -2068,6 +2627,86 @@ const toggleFavorite = (product: CatalogItem) => {
   writeFavorites(next)
   renderFavoriteButtons()
   renderFavorites()
+}
+
+const getCatalogItemByAlertId = (id: string): CatalogItem | undefined =>
+  catalogItems.find((p) => getFavoriteId(p.brand, p.model) === id)
+
+/** Demo kampanya fiyati: liste fiyatina gore; hedef TL ile karsilastirma icin. */
+const demoOfferPriceTl = (id: string, listPriceTl: number): number => {
+  if (!Number.isFinite(listPriceTl) || listPriceTl <= 0) return 0
+  let h = 0
+  for (let i = 0; i < id.length; i++) h = (Math.imul(31, h) + id.charCodeAt(i)) | 0
+  const u = Math.abs(h) % 38
+  const factor = 0.57 + u / 100
+  return Math.round(listPriceTl * factor * 100) / 100
+}
+
+const readPriceAlerts = (): PriceAlertRecord[] => {
+  const raw = localStorage.getItem(PRICE_ALERTS_KEY)
+  if (!raw) return []
+  try {
+    const items = JSON.parse(raw) as PriceAlertRecord[]
+    if (!Array.isArray(items)) return []
+    return items.filter(
+      (x) =>
+        x &&
+        typeof x.id === 'string' &&
+        typeof x.targetPriceTl === 'number' &&
+        Number.isFinite(x.targetPriceTl) &&
+        x.targetPriceTl >= 1,
+    )
+  } catch {
+    return []
+  }
+}
+
+const writePriceAlerts = (items: PriceAlertRecord[]) => {
+  localStorage.setItem(PRICE_ALERTS_KEY, JSON.stringify(items))
+}
+
+const populatePriceAlarmSelect = () => {
+  if (!priceAlarmProductSelect) return
+  const prev = priceAlarmProductSelect.value
+  priceAlarmProductSelect.innerHTML = [
+    '<option value="">Ürün seçin…</option>',
+    ...catalogItems.map((item) => {
+      const pid = getFavoriteId(item.brand, item.model)
+      return `<option value="${pid}">${item.brand} — ${item.model}</option>`
+    }),
+  ].join('')
+  if (prev && catalogItems.some((p) => getFavoriteId(p.brand, p.model) === prev)) {
+    priceAlarmProductSelect.value = prev
+  }
+}
+
+const renderPriceAlerts = () => {
+  if (!priceAlarmListEl) return
+  const rows = readPriceAlerts()
+  if (!rows.length) {
+    priceAlarmListEl.innerHTML = '<p class="favorites-empty">Henüz fiyat alarmınız yok.</p>'
+    return
+  }
+  priceAlarmListEl.innerHTML = rows
+    .map((row) => {
+      const listTl = parsePrice(row.price)
+      const demo = demoOfferPriceTl(row.id, listTl)
+      const isAlert = demo > 0 && demo <= row.targetPriceTl
+      return `
+      <article class="favorite-card stock-alarm-card${isAlert ? ' stock-alarm-card--alert' : ''}">
+        <img src="${row.image}" alt="${row.brand} ${row.model}" />
+        <div class="favorite-card-info">
+          <strong>${row.brand}</strong>
+          <p>${row.model}</p>
+          <span>${row.price}</span>
+          <p class="stock-alarm-meta">Hedef: <strong>${formatPrice(row.targetPriceTl)}</strong> · Örnek kampanya: <strong>${formatPrice(demo)}</strong></p>
+          ${isAlert ? '<p class="stock-alarm-badge">Hedef fiyatın altında (örnek)</p>' : ''}
+        </div>
+        <button type="button" class="price-alarm-remove-btn" data-id="${row.id}">Kaldır</button>
+      </article>
+    `
+    })
+    .join('')
 }
 
 const openCheckoutModal = () => {
@@ -2203,6 +2842,7 @@ const translations: Record<string, string> = {
   'auth.loggedOut': 'Üye Girişi / Üye Ol',
   'auth.loggedIn': 'Hesabım',
   'menu.contents': 'İçerikler',
+  'menu.home': 'Anasayfa',
   'menu.categories': 'Kategoriler',
   'menu.women': 'Kadın',
   'menu.men': 'Erkek',
@@ -2211,12 +2851,12 @@ const translations: Record<string, string> = {
   'menu.help': 'Yardım & Destek',
   'menu.contact': 'İletişim',
   'menu.orderTracking': 'Sipariş Takibi',
+  'top.myOrders': 'Tüm Siparişlerim',
   'hero.caption': 'Minimal ve Zamansız',
   'hero.title': 'Kadın, Erkek ve Çocuk Gözlük Modelleri',
   'hero.intro':
     'Kadın, erkek ve çocuk seçkimizde siyahın asaleti beyazın yalınlığıyla buluşuyor. Gün boyu konfor sunan premium çerçevelerle stilinizi rafine bir dokunuşla tamamlayın.',
-  'hero.cta': 'Koleksiyonu İncele',
-  'hero.quickCta': 'İNCELE',
+  'hero.cta': 'Alışverişe Başla',
 }
 
 const t = (key: string): string => translations[key] ?? key
@@ -2254,7 +2894,10 @@ const syncCategoryTitle = () => {
     erkek: 'ERKEK GÜNEŞ GÖZLÜKLERİ',
     cocuk: 'ÇOCUK GÜNEŞ GÖZLÜKLERİ',
   }
-  if (categoryTitle) categoryTitle.textContent = categoryMap[currentCategoryView]
+  if (!categoryTitle) return
+  const baseTitle = categoryMap[currentCategoryView]
+  const brandSuffix = (filterBrand?.value ?? categoryFilters.brand ?? '').trim()
+  categoryTitle.textContent = brandSuffix ? `${baseTitle} - ${brandSuffix.toUpperCase()}` : baseTitle
 }
 
 const evaluatePasswordRules = (password: string) => {
@@ -2306,7 +2949,20 @@ const getCurrentUser = (): User | undefined => {
 }
 
 const hideAdminPanel = () => {
+  clearAdminAppHashIfPresent()
   if (adminSection) adminSection.style.display = 'none'
+}
+
+const hideFavoritesAndAlarmSections = () => {
+  if (favoritesSection) favoritesSection.style.display = 'none'
+  if (priceAlarmSection) priceAlarmSection.style.display = 'none'
+}
+
+const hideReturnAndCancelSections = () => {
+  if (returnSection) returnSection.style.display = 'none'
+  if (cancelSection) cancelSection.style.display = 'none'
+  if (reviewsSection) reviewsSection.style.display = 'none'
+  if (wishlistSection) wishlistSection.style.display = 'none'
 }
 
 const setAccountVisible = (isVisible: boolean) => {
@@ -2315,17 +2971,20 @@ const setAccountVisible = (isVisible: boolean) => {
     hideAdminPanel()
     if (heroSection) heroSection.style.display = 'none'
     if (categorySection) categorySection.style.display = 'none'
-    if (bestSellersSection) bestSellersSection.style.display = 'none'
+    if (homeShopRibbon) homeShopRibbon.style.display = 'none'
     if (supportSection) supportSection.style.display = 'none'
-    if (returnSection) returnSection.style.display = 'none'
+    hideReturnAndCancelSections()
     if (profileSection) profileSection.style.display = 'none'
     if (addressSection) addressSection.style.display = 'none'
     if (giftSection) giftSection.style.display = 'none'
     if (shoppingCartSection) shoppingCartSection.style.display = 'none'
     if (productDetailSection) productDetailSection.style.display = 'none'
     if (ordersSection) ordersSection.style.display = 'none'
-  } else if (bestSellersSection && (!categorySection || categorySection.style.display !== 'block')) {
-    bestSellersSection.style.display = 'block'
+    hideFavoritesAndAlarmSections()
+  } else {
+    const categoryOpen = Boolean(categorySection && categorySection.style.display === 'block')
+    if (heroSection) heroSection.style.display = categoryOpen ? 'none' : 'block'
+    if (homeShopRibbon && !categoryOpen) homeShopRibbon.style.display = 'block'
   }
 }
 
@@ -2335,14 +2994,15 @@ const setCategoryVisible = (isVisible: boolean) => {
   if (heroSection) heroSection.style.display = isVisible ? 'none' : 'block'
   if (accountSection && isVisible) accountSection.style.display = 'none'
   if (supportSection) supportSection.style.display = 'none'
-  if (returnSection) returnSection.style.display = 'none'
+  hideReturnAndCancelSections()
   if (profileSection) profileSection.style.display = 'none'
   if (addressSection) addressSection.style.display = 'none'
   if (giftSection) giftSection.style.display = 'none'
   if (shoppingCartSection) shoppingCartSection.style.display = 'none'
   if (productDetailSection) productDetailSection.style.display = 'none'
   if (ordersSection) ordersSection.style.display = 'none'
-  if (bestSellersSection) bestSellersSection.style.display = isVisible ? 'none' : 'block'
+  if (homeShopRibbon) homeShopRibbon.style.display = isVisible ? 'none' : 'block'
+  if (isVisible) hideFavoritesAndAlarmSections()
 }
 
 const setSupportVisible = (isVisible: boolean) => {
@@ -2351,19 +3011,23 @@ const setSupportVisible = (isVisible: boolean) => {
   if (heroSection) heroSection.style.display = isVisible ? 'none' : 'block'
   if (accountSection) accountSection.style.display = isVisible ? 'none' : accountSection.style.display
   if (categorySection) categorySection.style.display = isVisible ? 'none' : categorySection.style.display
-  if (returnSection) returnSection.style.display = 'none'
+  hideReturnAndCancelSections()
   if (profileSection) profileSection.style.display = 'none'
   if (addressSection) addressSection.style.display = 'none'
   if (giftSection) giftSection.style.display = 'none'
   if (shoppingCartSection) shoppingCartSection.style.display = 'none'
   if (productDetailSection) productDetailSection.style.display = 'none'
   if (ordersSection) ordersSection.style.display = 'none'
-  if (bestSellersSection) bestSellersSection.style.display = isVisible ? 'none' : bestSellersSection.style.display
+  if (homeShopRibbon) homeShopRibbon.style.display = isVisible ? 'none' : homeShopRibbon.style.display
+  if (isVisible) hideFavoritesAndAlarmSections()
 }
 
 const setReturnVisible = (isVisible: boolean) => {
   if (isVisible) hideAdminPanel()
   if (returnSection) returnSection.style.display = isVisible ? 'block' : 'none'
+  if (isVisible && cancelSection) cancelSection.style.display = 'none'
+  if (isVisible && reviewsSection) reviewsSection.style.display = 'none'
+  if (isVisible && wishlistSection) wishlistSection.style.display = 'none'
   if (heroSection) heroSection.style.display = isVisible ? 'none' : 'block'
   if (accountSection) accountSection.style.display = isVisible ? 'none' : accountSection.style.display
   if (categorySection) categorySection.style.display = isVisible ? 'none' : categorySection.style.display
@@ -2374,7 +3038,77 @@ const setReturnVisible = (isVisible: boolean) => {
   if (shoppingCartSection) shoppingCartSection.style.display = 'none'
   if (productDetailSection) productDetailSection.style.display = 'none'
   if (ordersSection) ordersSection.style.display = 'none'
-  if (bestSellersSection) bestSellersSection.style.display = isVisible ? 'none' : bestSellersSection.style.display
+  if (homeShopRibbon) homeShopRibbon.style.display = isVisible ? 'none' : homeShopRibbon.style.display
+  if (isVisible) hideFavoritesAndAlarmSections()
+}
+
+const setCancelVisible = (isVisible: boolean) => {
+  if (isVisible) hideAdminPanel()
+  if (cancelSection) cancelSection.style.display = isVisible ? 'block' : 'none'
+  if (isVisible && returnSection) returnSection.style.display = 'none'
+  if (isVisible && reviewsSection) reviewsSection.style.display = 'none'
+  if (isVisible && wishlistSection) wishlistSection.style.display = 'none'
+  if (heroSection) heroSection.style.display = isVisible ? 'none' : 'block'
+  if (accountSection) accountSection.style.display = isVisible ? 'none' : accountSection.style.display
+  if (categorySection) categorySection.style.display = isVisible ? 'none' : categorySection.style.display
+  if (supportSection) supportSection.style.display = 'none'
+  if (profileSection) profileSection.style.display = 'none'
+  if (addressSection) addressSection.style.display = 'none'
+  if (giftSection) giftSection.style.display = 'none'
+  if (shoppingCartSection) shoppingCartSection.style.display = 'none'
+  if (productDetailSection) productDetailSection.style.display = 'none'
+  if (ordersSection) ordersSection.style.display = 'none'
+  if (homeShopRibbon) homeShopRibbon.style.display = isVisible ? 'none' : homeShopRibbon.style.display
+  if (isVisible) {
+    hideFavoritesAndAlarmSections()
+    renderCancelSection()
+  } else {
+    closeCancelFormPanel()
+  }
+}
+
+const setReviewsVisible = (isVisible: boolean) => {
+  if (isVisible) hideAdminPanel()
+  if (reviewsSection) reviewsSection.style.display = isVisible ? 'block' : 'none'
+  if (isVisible && returnSection) returnSection.style.display = 'none'
+  if (isVisible && cancelSection) cancelSection.style.display = 'none'
+  if (isVisible && wishlistSection) wishlistSection.style.display = 'none'
+  if (heroSection) heroSection.style.display = isVisible ? 'none' : 'block'
+  if (accountSection) accountSection.style.display = isVisible ? 'none' : accountSection.style.display
+  if (categorySection) categorySection.style.display = isVisible ? 'none' : categorySection.style.display
+  if (supportSection) supportSection.style.display = 'none'
+  if (profileSection) profileSection.style.display = 'none'
+  if (addressSection) addressSection.style.display = 'none'
+  if (giftSection) giftSection.style.display = 'none'
+  if (shoppingCartSection) shoppingCartSection.style.display = 'none'
+  if (productDetailSection) productDetailSection.style.display = 'none'
+  if (ordersSection) ordersSection.style.display = 'none'
+  if (homeShopRibbon) homeShopRibbon.style.display = isVisible ? 'none' : homeShopRibbon.style.display
+  if (isVisible) hideFavoritesAndAlarmSections()
+}
+
+const setWishlistVisible = (isVisible: boolean) => {
+  if (isVisible) hideAdminPanel()
+  if (wishlistSection) wishlistSection.style.display = isVisible ? 'block' : 'none'
+  if (isVisible && returnSection) returnSection.style.display = 'none'
+  if (isVisible && cancelSection) cancelSection.style.display = 'none'
+  if (isVisible && reviewsSection) reviewsSection.style.display = 'none'
+  if (heroSection) heroSection.style.display = isVisible ? 'none' : 'block'
+  if (accountSection) accountSection.style.display = isVisible ? 'none' : accountSection.style.display
+  if (categorySection) categorySection.style.display = isVisible ? 'none' : categorySection.style.display
+  if (supportSection) supportSection.style.display = 'none'
+  if (profileSection) profileSection.style.display = 'none'
+  if (addressSection) addressSection.style.display = 'none'
+  if (giftSection) giftSection.style.display = 'none'
+  if (shoppingCartSection) shoppingCartSection.style.display = 'none'
+  if (productDetailSection) productDetailSection.style.display = 'none'
+  if (ordersSection) ordersSection.style.display = 'none'
+  if (homeShopRibbon) homeShopRibbon.style.display = isVisible ? 'none' : homeShopRibbon.style.display
+  if (isVisible) {
+    hideFavoritesAndAlarmSections()
+    populateWishlistDateSelects()
+    renderWishlistTable()
+  }
 }
 
 const setProfileVisible = (isVisible: boolean) => {
@@ -2384,13 +3118,14 @@ const setProfileVisible = (isVisible: boolean) => {
   if (accountSection) accountSection.style.display = isVisible ? 'none' : accountSection.style.display
   if (categorySection) categorySection.style.display = isVisible ? 'none' : categorySection.style.display
   if (supportSection) supportSection.style.display = 'none'
-  if (returnSection) returnSection.style.display = 'none'
+  hideReturnAndCancelSections()
   if (addressSection) addressSection.style.display = 'none'
   if (giftSection) giftSection.style.display = 'none'
   if (shoppingCartSection) shoppingCartSection.style.display = 'none'
   if (productDetailSection) productDetailSection.style.display = 'none'
   if (ordersSection) ordersSection.style.display = 'none'
-  if (bestSellersSection) bestSellersSection.style.display = isVisible ? 'none' : bestSellersSection.style.display
+  if (homeShopRibbon) homeShopRibbon.style.display = isVisible ? 'none' : homeShopRibbon.style.display
+  if (isVisible) hideFavoritesAndAlarmSections()
 }
 
 const setAddressVisible = (isVisible: boolean) => {
@@ -2400,13 +3135,14 @@ const setAddressVisible = (isVisible: boolean) => {
   if (accountSection) accountSection.style.display = isVisible ? 'none' : accountSection.style.display
   if (categorySection) categorySection.style.display = isVisible ? 'none' : categorySection.style.display
   if (supportSection) supportSection.style.display = 'none'
-  if (returnSection) returnSection.style.display = 'none'
+  hideReturnAndCancelSections()
   if (profileSection) profileSection.style.display = 'none'
   if (giftSection) giftSection.style.display = 'none'
   if (shoppingCartSection) shoppingCartSection.style.display = 'none'
   if (productDetailSection) productDetailSection.style.display = 'none'
   if (ordersSection) ordersSection.style.display = 'none'
-  if (bestSellersSection) bestSellersSection.style.display = isVisible ? 'none' : bestSellersSection.style.display
+  if (homeShopRibbon) homeShopRibbon.style.display = isVisible ? 'none' : homeShopRibbon.style.display
+  if (isVisible) hideFavoritesAndAlarmSections()
 }
 
 const setGiftVisible = (isVisible: boolean) => {
@@ -2416,13 +3152,14 @@ const setGiftVisible = (isVisible: boolean) => {
   if (accountSection) accountSection.style.display = isVisible ? 'none' : accountSection.style.display
   if (categorySection) categorySection.style.display = isVisible ? 'none' : categorySection.style.display
   if (supportSection) supportSection.style.display = 'none'
-  if (returnSection) returnSection.style.display = 'none'
+  hideReturnAndCancelSections()
   if (profileSection) profileSection.style.display = 'none'
   if (addressSection) addressSection.style.display = 'none'
   if (shoppingCartSection) shoppingCartSection.style.display = 'none'
   if (productDetailSection) productDetailSection.style.display = 'none'
   if (ordersSection) ordersSection.style.display = 'none'
-  if (bestSellersSection) bestSellersSection.style.display = isVisible ? 'none' : bestSellersSection.style.display
+  if (homeShopRibbon) homeShopRibbon.style.display = isVisible ? 'none' : homeShopRibbon.style.display
+  if (isVisible) hideFavoritesAndAlarmSections()
 }
 
 const setShoppingCartVisible = (isVisible: boolean) => {
@@ -2432,14 +3169,17 @@ const setShoppingCartVisible = (isVisible: boolean) => {
   if (accountSection) accountSection.style.display = isVisible ? 'none' : accountSection.style.display
   if (categorySection) categorySection.style.display = isVisible ? 'none' : categorySection.style.display
   if (supportSection) supportSection.style.display = 'none'
-  if (returnSection) returnSection.style.display = 'none'
+  hideReturnAndCancelSections()
   if (profileSection) profileSection.style.display = 'none'
   if (addressSection) addressSection.style.display = 'none'
   if (giftSection) giftSection.style.display = 'none'
   if (productDetailSection) productDetailSection.style.display = 'none'
   if (ordersSection) ordersSection.style.display = 'none'
-  if (bestSellersSection) bestSellersSection.style.display = isVisible ? 'none' : bestSellersSection.style.display
-  if (isVisible) renderShoppingCartPage()
+  if (homeShopRibbon) homeShopRibbon.style.display = isVisible ? 'none' : homeShopRibbon.style.display
+  if (isVisible) {
+    hideFavoritesAndAlarmSections()
+    renderShoppingCartPage()
+  }
 }
 
 const setOrdersVisible = (isVisible: boolean) => {
@@ -2449,33 +3189,57 @@ const setOrdersVisible = (isVisible: boolean) => {
   if (accountSection) accountSection.style.display = isVisible ? 'none' : accountSection.style.display
   if (categorySection) categorySection.style.display = isVisible ? 'none' : categorySection.style.display
   if (supportSection) supportSection.style.display = 'none'
-  if (returnSection) returnSection.style.display = 'none'
+  hideReturnAndCancelSections()
   if (profileSection) profileSection.style.display = 'none'
   if (addressSection) addressSection.style.display = 'none'
   if (giftSection) giftSection.style.display = 'none'
   if (shoppingCartSection) shoppingCartSection.style.display = 'none'
-  if (favoritesSection) favoritesSection.style.display = 'none'
+  hideFavoritesAndAlarmSections()
   if (productDetailSection) productDetailSection.style.display = 'none'
-  if (bestSellersSection) bestSellersSection.style.display = isVisible ? 'none' : bestSellersSection.style.display
-  if (isVisible) renderOrders()
+  if (homeShopRibbon) homeShopRibbon.style.display = isVisible ? 'none' : homeShopRibbon.style.display
+  if (isVisible) void pullCommerceStateFromBackend().then(() => renderOrders())
 }
 
 const setFavoritesVisible = (isVisible: boolean) => {
   if (isVisible) hideAdminPanel()
   if (favoritesSection) favoritesSection.style.display = isVisible ? 'block' : 'none'
+  if (isVisible && priceAlarmSection) priceAlarmSection.style.display = 'none'
   if (heroSection) heroSection.style.display = isVisible ? 'none' : 'block'
   if (accountSection) accountSection.style.display = isVisible ? 'none' : accountSection.style.display
   if (categorySection) categorySection.style.display = isVisible ? 'none' : categorySection.style.display
   if (supportSection) supportSection.style.display = 'none'
-  if (returnSection) returnSection.style.display = 'none'
+  hideReturnAndCancelSections()
   if (profileSection) profileSection.style.display = 'none'
   if (addressSection) addressSection.style.display = 'none'
   if (giftSection) giftSection.style.display = 'none'
   if (shoppingCartSection) shoppingCartSection.style.display = 'none'
   if (ordersSection) ordersSection.style.display = 'none'
   if (productDetailSection) productDetailSection.style.display = 'none'
-  if (bestSellersSection) bestSellersSection.style.display = isVisible ? 'none' : bestSellersSection.style.display
+  if (homeShopRibbon) homeShopRibbon.style.display = isVisible ? 'none' : homeShopRibbon.style.display
   if (isVisible) renderFavorites()
+}
+
+const setPriceAlarmVisible = (isVisible: boolean) => {
+  if (isVisible) hideAdminPanel()
+  if (priceAlarmSection) priceAlarmSection.style.display = isVisible ? 'block' : 'none'
+  if (isVisible && favoritesSection) favoritesSection.style.display = 'none'
+  if (heroSection) heroSection.style.display = isVisible ? 'none' : 'block'
+  if (accountSection) accountSection.style.display = isVisible ? 'none' : accountSection.style.display
+  if (categorySection) categorySection.style.display = isVisible ? 'none' : categorySection.style.display
+  if (supportSection) supportSection.style.display = 'none'
+  hideReturnAndCancelSections()
+  if (profileSection) profileSection.style.display = 'none'
+  if (addressSection) addressSection.style.display = 'none'
+  if (giftSection) giftSection.style.display = 'none'
+  if (shoppingCartSection) shoppingCartSection.style.display = 'none'
+  if (ordersSection) ordersSection.style.display = 'none'
+  if (productDetailSection) productDetailSection.style.display = 'none'
+  if (homeShopRibbon) homeShopRibbon.style.display = isVisible ? 'none' : homeShopRibbon.style.display
+  if (isVisible) {
+    populatePriceAlarmSelect()
+    if (priceAlarmFormStatus) priceAlarmFormStatus.textContent = ''
+    renderPriceAlerts()
+  }
 }
 
 const setProductDetailVisible = (isVisible: boolean) => {
@@ -2485,27 +3249,198 @@ const setProductDetailVisible = (isVisible: boolean) => {
   if (accountSection) accountSection.style.display = isVisible ? 'none' : accountSection.style.display
   if (categorySection) categorySection.style.display = isVisible ? 'none' : categorySection.style.display
   if (supportSection) supportSection.style.display = 'none'
-  if (returnSection) returnSection.style.display = 'none'
+  hideReturnAndCancelSections()
   if (profileSection) profileSection.style.display = 'none'
   if (addressSection) addressSection.style.display = 'none'
   if (giftSection) giftSection.style.display = 'none'
   if (shoppingCartSection) shoppingCartSection.style.display = 'none'
   if (ordersSection) ordersSection.style.display = 'none'
-  if (favoritesSection) favoritesSection.style.display = 'none'
-  if (bestSellersSection) bestSellersSection.style.display = isVisible ? 'none' : bestSellersSection.style.display
+  hideFavoritesAndAlarmSections()
+  if (homeShopRibbon) homeShopRibbon.style.display = isVisible ? 'none' : homeShopRibbon.style.display
 }
 
 const ORDER_STATUS_OPTIONS = ['Yeni', 'Hazırlanıyor', 'Kargolandı', 'Teslim Edildi', 'İptal', 'İade']
 
-const escapeHtml = (value: string): string =>
-  value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+const BEST_SELLER_HOME_ORDER: ReadonlyArray<readonly [string, string]> = [
+  ['Ray-Ban', 'RB2198 Kahverengi Unisex Gunes Gozlugu'],
+  ['Ray-Ban', 'RB3547 Siyah Kadin Gunes Gozlugu'],
+  ['Burberry', 'BE4437U Kahverengi Erkek Gunes Gozlugu'],
+  ['Miu Miu', 'MU 56ZS Gold Kadin Gunes Gozlugu'],
+  ['Versace', 'VE2198 Siyah Kadin Gunes Gozlugu'],
+  ['Mess Frames', 'Indoor Kahverengi Unisex Gunes Gozlugu'],
+]
+
+const renderBestSellersHome = () => {
+  const grid = document.querySelector<HTMLElement>('#best-sellers-grid')
+  if (!grid) return
+  const parts: string[] = []
+  for (const [brand, model] of BEST_SELLER_HOME_ORDER) {
+    const item = catalogItems.find((p) => p.brand === brand && p.model === model)
+    if (!item) continue
+    parts.push(`
+      <article class="product-card">
+        <span class="product-badge">Çok Satan</span>
+        <div class="product-image">
+          <img src="${escapeHtml(item.image)}" alt="${escapeHtml(`${item.brand} ${item.model}`)}" onerror="this.onerror=null;this.src='/products/product-2.png';" />
+        </div>
+        <h3>${escapeHtml(item.brand)}</h3>
+        <p class="product-model">${escapeHtml(item.model)}</p>
+        <p class="product-price">${escapeHtml(item.price)}</p>
+        <button type="button" class="add-to-cart-btn" data-brand="${escapeHtml(item.brand)}" data-model="${escapeHtml(item.model)}" data-price="${escapeHtml(item.price)}" data-image="${escapeHtml(item.image)}">Sepete Ekle</button>
+      </article>
+    `)
+  }
+  grid.innerHTML = parts.join('')
+}
+
+const readWishlistEntries = (): WishlistEntryRecord[] => {
+  const raw = localStorage.getItem(WISHLISTS_KEY)
+  if (!raw) return []
+  try {
+    const parsed = JSON.parse(raw) as unknown
+    if (!Array.isArray(parsed)) return []
+    return parsed
+      .filter((row): row is WishlistEntryRecord => {
+        return (
+          typeof row === 'object' &&
+          row !== null &&
+          typeof (row as WishlistEntryRecord).id === 'string' &&
+          typeof (row as WishlistEntryRecord).title === 'string'
+        )
+      })
+      .map((row) => ({
+        ...row,
+        importance: String(row.importance ?? ''),
+        day: String(row.day ?? ''),
+        month: String(row.month ?? ''),
+        year: String(row.year ?? ''),
+        title: String(row.title ?? ''),
+        description: String(row.description ?? ''),
+        isDefault: Boolean(row.isDefault),
+        isActive: row.isActive !== false,
+        createdAt: String(row.createdAt ?? ''),
+      }))
+  } catch {
+    return []
+  }
+}
+
+const writeWishlistEntries = (rows: WishlistEntryRecord[]) => {
+  localStorage.setItem(WISHLISTS_KEY, JSON.stringify(rows))
+}
+
+const WISHLIST_TURKISH_MONTHS = [
+  'Ocak',
+  'Şubat',
+  'Mart',
+  'Nisan',
+  'Mayıs',
+  'Haziran',
+  'Temmuz',
+  'Ağustos',
+  'Eylül',
+  'Ekim',
+  'Kasım',
+  'Aralık',
+]
+
+const populateWishlistDateSelects = () => {
+  if (!wishlistDay || !wishlistMonth || !wishlistYear) return
+  if (wishlistDay.options.length > 0) return
+
+  const addPlaceholder = (select: HTMLSelectElement, label: string) => {
+    const opt = document.createElement('option')
+    opt.value = ''
+    opt.disabled = true
+    opt.selected = true
+    opt.textContent = label
+    select.appendChild(opt)
+  }
+
+  addPlaceholder(wishlistDay, 'Gün')
+  for (let d = 1; d <= 31; d += 1) {
+    const opt = document.createElement('option')
+    opt.value = String(d)
+    opt.textContent = String(d)
+    wishlistDay.appendChild(opt)
+  }
+
+  addPlaceholder(wishlistMonth, 'Ay')
+  WISHLIST_TURKISH_MONTHS.forEach((name, i) => {
+    const opt = document.createElement('option')
+    opt.value = String(i + 1)
+    opt.textContent = name
+    wishlistMonth.appendChild(opt)
+  })
+
+  addPlaceholder(wishlistYear, 'Yıl')
+  const y = new Date().getFullYear()
+  for (let yr = y - 2; yr <= y + 6; yr += 1) {
+    const opt = document.createElement('option')
+    opt.value = String(yr)
+    opt.textContent = String(yr)
+    wishlistYear.appendChild(opt)
+  }
+}
+
+const resetWishlistForm = () => {
+  wishlistForm?.reset()
+  if (wishlistActive) wishlistActive.checked = true
+}
+
+const renderWishlistTable = () => {
+  if (!wishlistTableBody) return
+  const rows = readWishlistEntries().sort((a, b) => {
+    const ta = new Date(a.createdAt).getTime()
+    const tb = new Date(b.createdAt).getTime()
+    return (Number.isFinite(tb) ? tb : 0) - (Number.isFinite(ta) ? ta : 0)
+  })
+  if (rows.length === 0) {
+    wishlistTableBody.innerHTML =
+      '<tr><td colspan="5" class="wishlist-empty-cell">Henüz kayıt yok.</td></tr>'
+    return
+  }
+  wishlistTableBody.innerHTML = rows
+    .map((r) => {
+      const status = r.isActive ? 'Aktif' : 'Pasif'
+      const safeId = escapeHtml(r.id)
+      return `<tr>
+        <td class="wishlist-td-check"><input type="checkbox" disabled aria-hidden="true" /></td>
+        <td>${escapeHtml(r.title)}</td>
+        <td>${escapeHtml(status)}</td>
+        <td>${escapeHtml(r.importance)}</td>
+        <td class="wishlist-td-action"><button type="button" class="wishlist-remove-btn" data-wishlist-id="${safeId}">Sil</button></td>
+      </tr>`
+    })
+    .join('')
+}
+
+/** Yonetim paneli yalnizca bu hash ile acilir; magaza sayfasinda gorunmez. */
+const ADMIN_APP_HASH = '#admin'
+
+const normalizeLocationHash = () => location.hash.split('?')[0].toLowerCase()
+
+const isAdminAppHash = (): boolean => {
+  const h = normalizeLocationHash()
+  return h === '#admin' || h === '#/admin'
+}
+
+const clearAdminAppHashIfPresent = () => {
+  if (!isAdminAppHash()) return
+  history.replaceState(null, '', `${location.pathname}${location.search}`)
+}
 
 const setAdminVisible = (isVisible: boolean) => {
   if (!adminSection) return
   if (!isVisible) {
+    clearAdminAppHashIfPresent()
     adminSection.style.display = 'none'
     if (heroSection) heroSection.style.display = 'block'
-    if (bestSellersSection) bestSellersSection.style.display = 'block'
+    if (homeShopRibbon) homeShopRibbon.style.display = 'block'
+    return
+  }
+  if (!isAdminAppHash()) {
+    location.hash = ADMIN_APP_HASH
     return
   }
   adminSection.style.display = 'block'
@@ -2513,20 +3448,28 @@ const setAdminVisible = (isVisible: boolean) => {
   if (accountSection) accountSection.style.display = 'none'
   if (categorySection) categorySection.style.display = 'none'
   if (supportSection) supportSection.style.display = 'none'
-  if (returnSection) returnSection.style.display = 'none'
+  hideReturnAndCancelSections()
   if (profileSection) profileSection.style.display = 'none'
   if (addressSection) addressSection.style.display = 'none'
   if (giftSection) giftSection.style.display = 'none'
   if (shoppingCartSection) shoppingCartSection.style.display = 'none'
   if (productDetailSection) productDetailSection.style.display = 'none'
   if (ordersSection) ordersSection.style.display = 'none'
-  if (favoritesSection) favoritesSection.style.display = 'none'
-  if (bestSellersSection) bestSellersSection.style.display = 'none'
+  hideFavoritesAndAlarmSections()
+  if (homeShopRibbon) homeShopRibbon.style.display = 'none'
   closeMenuPanel()
   closeAuthModal()
   switchAdminTab('dashboard')
   updateAdminGate()
   void refreshAdminData()
+}
+
+const applyAdminRoute = () => {
+  if (isAdminAppHash()) {
+    setAdminVisible(true)
+    return
+  }
+  setAdminVisible(false)
 }
 
 const switchAdminTab = (tab: string) => {
@@ -2547,6 +3490,7 @@ const updateAdminGate = () => {
 const clearAdminTokenIfAuthError = (res: Response) => {
   if (res.status === 401 || res.status === 503) {
     sessionStorage.removeItem(ADMIN_TOKEN_KEY)
+    invalidateCsrfToken()
     updateAdminGate()
   }
 }
@@ -2787,7 +3731,7 @@ const renderAdminReviews = async () => {
       </tr>`,
           )
           .join('')
-      : `<tr><td colspan="8">Henüz yorum yok. İsterseniz API ile kayıt ekleyebilirsiniz.</td></tr>`
+      : `<tr><td colspan="8"></td></tr>`
 }
 
 const renderAdminMarketing = async () => {
@@ -3004,12 +3948,13 @@ const refreshAdminData = async () => {
     if (!dashRes.ok) {
       if (dashRes.status === 401 || dashRes.status === 503) {
         sessionStorage.removeItem(ADMIN_TOKEN_KEY)
+        invalidateCsrfToken()
         updateAdminGate()
       }
       throw new Error(dashBody.error ?? 'Dashboard yuklenemedi')
     }
     const dash = dashBody as unknown as {
-      stats: { totalSales: number; orderCount: number; registeredCustomers: number; visitorsHint: string }
+      stats: { totalSales: number; orderCount: number; registeredCustomers: number }
       charts: {
         revenueByDay: Array<{ label: string; amount: number }>
         revenueByWeek: Array<{ label: string; amount: number }>
@@ -3020,14 +3965,12 @@ const refreshAdminData = async () => {
         pendingOrders: number
         returnRequests: number
       }
-      notes: Record<string, string>
     }
     if (adminStatsEl) {
       adminStatsEl.innerHTML = `
         <div class="admin-stat-card"><span>Toplam satış</span><strong>${dash.stats.totalSales.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TL</strong></div>
         <div class="admin-stat-card"><span>Sipariş sayısı</span><strong>${dash.stats.orderCount}</strong></div>
-        <div class="admin-stat-card"><span>Kayıtlı müşteri</span><strong>${dash.stats.registeredCustomers}</strong></div>
-        <div class="admin-stat-card admin-stat-card--wide"><span>Ziyaretçi</span><strong>${escapeHtml(dash.stats.visitorsHint)}</strong></div>`
+        <div class="admin-stat-card"><span>Kayıtlı müşteri</span><strong>${dash.stats.registeredCustomers}</strong></div>`
     }
     renderAdminBarChart(adminChartDay, dash.charts.revenueByDay)
     renderAdminBarChart(adminChartWeek, dash.charts.revenueByWeek)
@@ -3038,17 +3981,8 @@ const refreshAdminData = async () => {
         <p><strong>İade / destek kayıtları (konu başlığında "iade"):</strong> ${dash.alerts.returnRequests}</p>
         <ul class="admin-alert-list">${dash.alerts.lowStock.map((p) => `<li>${escapeHtml(p.brand)} ${escapeHtml(p.model)} — stok: ${p.stock}</li>`).join('') || '<li>Düşük stok uyarısı yok</li>'}</ul>`
     }
-    if (adminNotesList) {
-      adminNotesList.innerHTML = Object.entries(dash.notes)
-        .map(([k, v]) => `<li><strong>${escapeHtml(k)}:</strong> ${escapeHtml(v)}</li>`)
-        .join('')
-    }
-    if (adminExcelHint && dash.notes.excel) {
-      adminExcelHint.textContent = dash.notes.excel
-    }
-    if (adminInvoiceHint && dash.notes.efatura) {
-      adminInvoiceHint.textContent = `${dash.notes.efatura} ${dash.notes.kargo ?? ''}`
-    }
+    if (adminExcelHint) adminExcelHint.textContent = ''
+    if (adminInvoiceHint) adminInvoiceHint.textContent = ''
   } catch (e) {
     if (adminLoginStatus) adminLoginStatus.textContent = e instanceof Error ? e.message : 'Hata oluştu'
   }
@@ -3084,6 +4018,67 @@ const openProductDetail = (product: CatalogItem) => {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
+const TOP_SEARCH_DEBOUNCE_MS = 200
+const TOP_SEARCH_MAX = 12
+let topSearchDebounce: ReturnType<typeof setTimeout> | null = null
+let topSearchMatchBuffer: CatalogItem[] = []
+
+const filterCatalogForTopSearch = (q: string): CatalogItem[] => {
+  const needle = q.trim().toLowerCase()
+  if (needle.length < 1) return []
+  const out: CatalogItem[] = []
+  for (const item of catalogItems) {
+    const hay = `${item.brand} ${item.model}`.toLowerCase()
+    if (hay.includes(needle)) {
+      out.push(item)
+      if (out.length >= TOP_SEARCH_MAX) break
+    }
+  }
+  return out
+}
+
+const closeTopSearchResults = () => {
+  if (topSearchResults) {
+    topSearchResults.hidden = true
+    topSearchResults.innerHTML = ''
+  }
+  topSearchMatchBuffer = []
+}
+
+const renderTopSearchResults = (items: CatalogItem[]) => {
+  if (!topSearchResults) return
+  topSearchMatchBuffer = items
+  if (!items.length) {
+    topSearchResults.hidden = true
+    topSearchResults.innerHTML = ''
+    return
+  }
+  topSearchResults.hidden = false
+  topSearchResults.innerHTML = items
+    .map(
+      (item, idx) => `
+    <button type="button" class="top-search-result" data-idx="${idx}">
+      <img src="${escapeHtml(item.image)}" alt="" class="top-search-result-img" width="44" height="36" loading="lazy" onerror="this.onerror=null;this.src='/products/product-2.png';" />
+      <span class="top-search-result-text">
+        <strong>${escapeHtml(item.brand)}</strong>
+        <span class="top-search-result-model">${escapeHtml(item.model)}</span>
+        <span class="top-search-result-price">${escapeHtml(item.price)}</span>
+      </span>
+    </button>`,
+    )
+    .join('')
+}
+
+const scheduleTopSearch = () => {
+  if (topSearchDebounce) clearTimeout(topSearchDebounce)
+  topSearchDebounce = setTimeout(() => {
+    topSearchDebounce = null
+    const q = topProductSearch?.value ?? ''
+    const items = filterCatalogForTopSearch(q)
+    renderTopSearchResults(items)
+  }, TOP_SEARCH_DEBOUNCE_MS)
+}
+
 const getCardProduct = (card: HTMLElement): CatalogItem | null => {
   const brand = card.querySelector<HTMLElement>('h3')?.textContent?.trim() ?? ''
   const model = card.querySelector<HTMLElement>('.product-model')?.textContent?.trim() ?? ''
@@ -3103,23 +4098,98 @@ const getCardProduct = (card: HTMLElement): CatalogItem | null => {
   }
 }
 
+const setSelectOptions = (selectEl: HTMLSelectElement | null, placeholder: string, values: string[]) => {
+  if (!selectEl) return
+  const currentValue = selectEl.value
+  const uniqueSorted = Array.from(new Set(values.filter(Boolean))).sort((a, b) => a.localeCompare(b, 'tr'))
+  selectEl.innerHTML = [
+    `<option value="">${escapeHtml(placeholder)}</option>`,
+    ...uniqueSorted.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`),
+  ].join('')
+  if (currentValue && uniqueSorted.includes(currentValue)) selectEl.value = currentValue
+}
+
+const getItemsInCategory = (category: CategoryKey): CatalogItem[] =>
+  catalogItems.filter((item) => item.category === category)
+
+/** Seçili markaya göre (varsa) filtre seçenekleri; marka seçili değilse tüm kategori. */
+const getItemsForFilterContext = (category: CategoryKey): CatalogItem[] => {
+  const brandVal = (filterBrand?.value ?? '').trim()
+  const inCat = getItemsInCategory(category)
+  if (!brandVal) return inCat
+  const lower = brandVal.toLowerCase()
+  return inCat.filter((item) => item.brand.toLowerCase() === lower)
+}
+
+const hydrateCategoryFilterOptions = (category: CategoryKey) => {
+  const allInCategory = getItemsInCategory(category)
+  const brandOptions = Array.from(new Set(allInCategory.map((item) => item.brand)))
+  setSelectOptions(filterBrand, 'Marka', brandOptions)
+
+  const items = getItemsForFilterContext(category)
+  const specsList = items.map((item) => buildProductSpecs(item))
+  setSelectOptions(filterShape, 'Çerçeve Şekli', specsList.map((specs) => specs.frameShape))
+  setSelectOptions(filterFrameColor, 'Çerçeve Rengi', specsList.map((specs) => specs.frameColor))
+  setSelectOptions(filterLensSize, 'Cam Ölçüsü', specsList.map((specs) => specs.lensSize))
+  setSelectOptions(filterPriceRange, 'Fiyat Aralığı', specsList.map((specs) => specs.priceRange))
+  setSelectOptions(filterRecommended, 'Önerilen', specsList.map((specs) => specs.recommended))
+}
+
+const syncFiltersFromControls = () => {
+  categoryFilters.brand = filterBrand?.value ?? ''
+  categoryFilters.frameShape = filterShape?.value ?? ''
+  categoryFilters.frameColor = filterFrameColor?.value ?? ''
+  categoryFilters.lensSize = filterLensSize?.value ?? ''
+  categoryFilters.priceRange = filterPriceRange?.value ?? ''
+  categoryFilters.recommended = filterRecommended?.value ?? ''
+}
+
+const resetCategoryFilters = () => {
+  categoryFilters.brand = ''
+  categoryFilters.frameShape = ''
+  categoryFilters.frameColor = ''
+  categoryFilters.lensSize = ''
+  categoryFilters.priceRange = ''
+  categoryFilters.recommended = ''
+  ;[filterBrand, filterShape, filterFrameColor, filterLensSize, filterPriceRange, filterRecommended].forEach((selectEl) => {
+    if (selectEl) selectEl.value = ''
+  })
+}
+
 const renderCategoryProducts = (category: CategoryKey) => {
   if (!categoryProducts) return
-  const items = catalogItems.filter((item) => item.category === category)
+  const brandFilterLower = categoryFilters.brand.trim().toLowerCase()
+  const items = getItemsInCategory(category).filter((item) => {
+    const specs = buildProductSpecs(item)
+    if (brandFilterLower && item.brand.toLowerCase() !== brandFilterLower) return false
+    if (categoryFilters.frameShape && specs.frameShape !== categoryFilters.frameShape) return false
+    if (categoryFilters.frameColor && specs.frameColor !== categoryFilters.frameColor) return false
+    if (categoryFilters.lensSize && specs.lensSize !== categoryFilters.lensSize) return false
+    if (categoryFilters.priceRange && specs.priceRange !== categoryFilters.priceRange) return false
+    if (categoryFilters.recommended && specs.recommended !== categoryFilters.recommended) return false
+    return true
+  })
   categoryProducts.innerHTML = items
     .map(
-      (item) => `
+      (item) => {
+        const specs = buildProductSpecs(item)
+        return `
         <article class="category-product-card">
           <span class="product-badge">Çok Satan</span>
           <div class="product-image"><img src="${item.image}" alt="${item.brand} ${item.model}" onerror="this.onerror=null;this.src='/products/product-2.png';" /></div>
           <h3>${item.brand}</h3>
           <p class="product-model">${item.model}</p>
+          <p class="product-meta">Çerçeve: ${specs.frameShape} · Cam: ${specs.lensSize}</p>
           <p class="product-price">${item.price}</p>
           <button type="button" class="add-to-cart-btn" data-brand="${item.brand}" data-model="${item.model}" data-price="${item.price}" data-image="${item.image}">Sepete Ekle</button>
         </article>
-      `,
+      `
+      },
     )
     .join('')
+  if (!items.length) {
+    categoryProducts.innerHTML = `<p class="category-empty">Bu marka için ürün bulunamadı.</p>`
+  }
   renderFavoriteButtons()
 }
 
@@ -3248,6 +4318,7 @@ const setupAddressCityDistrictSelects = async () => {
 }
 
 const refreshAuthButton = () => {
+  syncAccountDashboardGreeting()
   const currentUser = getCurrentUser()
   if (!authOpenBtn) return
   authOpenBtn.textContent = currentUser ? t('auth.loggedIn') : t('auth.loggedOut')
@@ -3331,6 +4402,11 @@ document.querySelector<HTMLFormElement>('#login-pane')?.addEventListener('submit
   const termsAccepted = Boolean(document.querySelector<HTMLInputElement>('#login-terms')?.checked)
   let loggedUserName = ''
 
+  if (!termsAccepted) {
+    setStatus('Giris icin uyelik kosullarini kabul etmelisiniz.')
+    return
+  }
+
   try {
     const response = await authApiRequest<{ user: UserProfile; adminToken?: string }>('/auth/login', 'POST', { email, password })
     if (response.adminToken) {
@@ -3339,19 +4415,25 @@ document.querySelector<HTMLFormElement>('#login-pane')?.addEventListener('submit
       setStatus('')
       closeAuthModal()
       setAccountVisible(false)
-      setAdminVisible(true)
+      location.hash = ADMIN_APP_HASH
       window.scrollTo({ top: 0, behavior: 'smooth' })
       void refreshAdminData()
-      return
-    }
-    if (!termsAccepted) {
-      setStatus('Giris icin uyelik kosullarini kabul etmelisiniz.')
       return
     }
     writeUserInfo(response.user)
     loggedUserName = response.user.name
   } catch (error) {
-    setStatus(error instanceof Error ? error.message : 'E-posta veya sifre hatali.')
+    const raw = error instanceof Error ? error.message : ''
+    const isNetwork =
+      raw.includes('Failed to fetch') ||
+      raw.includes('NetworkError') ||
+      raw.toLowerCase().includes('network') ||
+      error instanceof TypeError
+    setStatus(
+      isNetwork
+        ? 'Sunucuya baglanilamadi. API ayakta mi? Proje klasorunde: npm run dev:all (veya ayri: npm run dev:api + npm run dev).'
+        : raw || 'E-posta veya sifre hatali.',
+    )
     return
   }
 
@@ -3394,18 +4476,23 @@ document.querySelector<HTMLFormElement>('#reset-pane')?.addEventListener('submit
     return
   }
 
+  const resetEmail = pendingResetEmail.trim().toLowerCase()
   try {
-    const response = await authApiRequest<{ user: UserProfile }>('/auth/reset/confirm', 'POST', {
-      email: pendingResetEmail,
+    const response = await authApiRequest<{ user?: UserProfile }>('/auth/reset/confirm', 'POST', {
+      email: resetEmail,
       code: resetCode,
       password: newPassword,
     })
-    writeUserInfo(response.user)
+    localStorage.setItem(SESSION_KEY, resetEmail)
+    if (response.user && response.user.email?.trim().toLowerCase() === resetEmail) {
+      writeUserInfo(response.user)
+    } else {
+      await pullUserProfileFromBackend()
+    }
   } catch (error) {
     setStatus(error instanceof Error ? error.message : 'Kullanici bulunamadi.')
     return
   }
-  localStorage.setItem(SESSION_KEY, pendingResetEmail)
   pendingResetEmail = ''
   void pullCommerceStateFromBackend().then(() => {
     renderCart()
@@ -3432,6 +4519,7 @@ logoutBtn?.addEventListener('click', () => {
   closeAccountMenu()
   localStorage.removeItem(SESSION_KEY)
   localStorage.removeItem(USER_INFO_KEY)
+  invalidateCsrfToken()
   refreshAuthButton()
   setAccountVisible(false)
 })
@@ -3440,12 +4528,13 @@ topLogoutBtn?.addEventListener('click', () => {
   closeAccountMenu()
   localStorage.removeItem(SESSION_KEY)
   localStorage.removeItem(USER_INFO_KEY)
+  invalidateCsrfToken()
   refreshAuthButton()
   setAccountVisible(false)
 })
 
-brandLink?.addEventListener('click', (event) => {
-  event.preventDefault()
+const goToHomepage = () => {
+  closeMenuPanel()
   closeAuthModal()
   hideAdminPanel()
   setProductDetailVisible(false)
@@ -3457,9 +4546,50 @@ brandLink?.addEventListener('click', (event) => {
   setShoppingCartVisible(false)
   setOrdersVisible(false)
   setFavoritesVisible(false)
+  setPriceAlarmVisible(false)
+  setCancelVisible(false)
+  setReviewsVisible(false)
+  setWishlistVisible(false)
   setCategoryVisible(false)
   setAccountVisible(false)
   window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+/** Hesap ozeti (MERHABA / kartlar); magaza vitrini degil. */
+const goToAccountDashboard = () => {
+  closeMenuPanel()
+  closeAuthModal()
+  hideAdminPanel()
+  setProductDetailVisible(false)
+  setSupportVisible(false)
+  setReturnVisible(false)
+  setProfileVisible(false)
+  setAddressVisible(false)
+  setGiftVisible(false)
+  setShoppingCartVisible(false)
+  setOrdersVisible(false)
+  setFavoritesVisible(false)
+  setPriceAlarmVisible(false)
+  setCancelVisible(false)
+  setReviewsVisible(false)
+  setWishlistVisible(false)
+  setCategoryVisible(false)
+  setAccountVisible(true)
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+brandLink?.addEventListener('click', (event) => {
+  event.preventDefault()
+  goToHomepage()
+})
+
+document.querySelector<HTMLButtonElement>('.account-home-btn')?.addEventListener('click', () => {
+  goToAccountDashboard()
+})
+
+document.querySelector<HTMLAnchorElement>('.contents-home-link')?.addEventListener('click', (event) => {
+  event.preventDefault()
+  goToAccountDashboard()
 })
 
 adminCloseBtn?.addEventListener('click', () => setAdminVisible(false))
@@ -3525,16 +4655,6 @@ document.querySelectorAll<HTMLButtonElement>('.admin-nav').forEach((btn) => {
   })
 })
 
-adminOpenItems.forEach((item) => {
-  item.addEventListener('click', (event) => {
-    event.preventDefault()
-    closeMenuPanel()
-    closeAuthModal()
-    setAdminVisible(true)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  })
-})
-
 adminBulkPriceBtn?.addEventListener('click', async () => {
   if (!getAdminToken()) return
   const pct = Number(adminBulkPercent?.value)
@@ -3550,6 +4670,7 @@ adminBulkPriceBtn?.addEventListener('click', async () => {
   const body = (await res.json().catch(() => ({}))) as { error?: string; updated?: number }
   if (res.status === 401 || res.status === 503) {
     sessionStorage.removeItem(ADMIN_TOKEN_KEY)
+    invalidateCsrfToken()
     updateAdminGate()
   }
   if (!res.ok) {
@@ -3577,6 +4698,7 @@ adminSyncCatalogBtn?.addEventListener('click', async () => {
   const body = (await res.json().catch(() => ({}))) as { error?: string; synced?: number }
   if (res.status === 401 || res.status === 503) {
     sessionStorage.removeItem(ADMIN_TOKEN_KEY)
+    invalidateCsrfToken()
     updateAdminGate()
   }
   if (!res.ok) {
@@ -3612,6 +4734,7 @@ adminSection?.addEventListener('click', async (ev) => {
     })
     if (res.status === 401 || res.status === 503) {
       sessionStorage.removeItem(ADMIN_TOKEN_KEY)
+      invalidateCsrfToken()
       updateAdminGate()
     }
     if (!res.ok) {
@@ -3635,6 +4758,7 @@ adminSection?.addEventListener('click', async (ev) => {
     })
     if (res.status === 401 || res.status === 503) {
       sessionStorage.removeItem(ADMIN_TOKEN_KEY)
+      invalidateCsrfToken()
       updateAdminGate()
     }
     if (!res.ok) {
@@ -3972,6 +5096,33 @@ returnOpenItems.forEach((item) => {
   })
 })
 
+cancelOpenItems.forEach((item) => {
+  item.addEventListener('click', (event) => {
+    event.preventDefault()
+    closeAuthModal()
+    setCancelVisible(true)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  })
+})
+
+reviewsOpenItems.forEach((item) => {
+  item.addEventListener('click', (event) => {
+    event.preventDefault()
+    closeAuthModal()
+    setReviewsVisible(true)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  })
+})
+
+wishlistOpenItems.forEach((item) => {
+  item.addEventListener('click', (event) => {
+    event.preventDefault()
+    closeAuthModal()
+    setWishlistVisible(true)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  })
+})
+
 profileOpenItems.forEach((item) => {
   item.addEventListener('click', (event) => {
     event.preventDefault()
@@ -4018,6 +5169,15 @@ favoritesOpenItems.forEach((item) => {
     event.preventDefault()
     closeAuthModal()
     setFavoritesVisible(true)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  })
+})
+
+priceAlarmOpenItems.forEach((item) => {
+  item.addEventListener('click', (event) => {
+    event.preventDefault()
+    closeAuthModal()
+    setPriceAlarmVisible(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   })
 })
@@ -4070,7 +5230,7 @@ checkoutCvv?.addEventListener('input', () => {
   checkoutCvv.value = (checkoutCvv.value || '').replace(/\D/g, '').slice(0, 4)
 })
 
-checkoutForm?.addEventListener('submit', (event) => {
+checkoutForm?.addEventListener('submit', async (event) => {
   event.preventDefault()
   const name = (checkoutName?.value ?? '').trim()
   const card = (checkoutCardNumber?.value ?? '').replace(/\s/g, '')
@@ -4080,6 +5240,15 @@ checkoutForm?.addEventListener('submit', (event) => {
 
   if (!name || card.length !== 16 || !/^\d{2}\/\d{2}$/.test(expiry) || cvv.length < 3 || !accepted) {
     if (checkoutStatusEl) checkoutStatusEl.textContent = 'Lutfen tum kart bilgilerini dogru doldurup onay kutusunu isaretleyin.'
+    return
+  }
+
+  if (checkoutStatusEl) checkoutStatusEl.textContent = 'Stok kontrol ediliyor...'
+  const cartItems = readCart()
+  const stockResult = await reserveCheckoutStock(cartItems)
+  if (!stockResult.ok) {
+    if (checkoutStatusEl) checkoutStatusEl.textContent = stockResult.message
+    renderCart()
     return
   }
 
@@ -4121,6 +5290,26 @@ productDetailImageWrap?.addEventListener('mouseleave', () => {
 
 document.addEventListener('click', (event) => {
   const target = event.target as HTMLElement
+
+  if (topSearchResults && !topSearchResults.hidden && !target.closest('#top-search')) {
+    closeTopSearchResults()
+  }
+
+  const heroShopCta = target.closest<HTMLAnchorElement>('main.hero-content a.cta')
+  if (heroShopCta) {
+    event.preventDefault()
+    currentCategoryView = 'kadin'
+    resetCategoryFilters()
+    hydrateCategoryFilterOptions(currentCategoryView)
+    syncCategoryTitle()
+    renderCategoryProducts(currentCategoryView)
+    closeMenuPanel()
+    setCategoryVisible(true)
+    closeAuthModal()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    return
+  }
+
   const favoriteBtn = target.closest<HTMLButtonElement>('.favorite-btn')
   if (favoriteBtn) {
     const card = favoriteBtn.closest<HTMLElement>('.product-card, .category-product-card')
@@ -4139,6 +5328,24 @@ document.addEventListener('click', (event) => {
     writeFavorites(items)
     renderFavorites()
     renderFavoriteButtons()
+    return
+  }
+
+  const priceAlarmRemoveBtn = target.closest<HTMLButtonElement>('.price-alarm-remove-btn')
+  if (priceAlarmRemoveBtn) {
+    const id = priceAlarmRemoveBtn.dataset.id ?? ''
+    if (!id) return
+    writePriceAlerts(readPriceAlerts().filter((row) => row.id !== id))
+    renderPriceAlerts()
+    return
+  }
+
+  const cancelRemoveBtn = target.closest<HTMLButtonElement>('.cancel-remove-btn')
+  if (cancelRemoveBtn) {
+    const id = cancelRemoveBtn.dataset.id ?? ''
+    if (!id) return
+    writeCancelRequests(readCancelRequests().filter((row) => row.id !== id))
+    renderCancelSection()
     return
   }
 
@@ -4222,6 +5429,45 @@ addressForm?.addEventListener('submit', (event) => {
   if (addressSuccess) addressSuccess.style.display = 'block'
 })
 
+priceAlarmForm?.addEventListener('submit', (event) => {
+  event.preventDefault()
+  const pid = priceAlarmProductSelect?.value?.trim() ?? ''
+  const targetRaw = Number(priceAlarmTargetInput?.value ?? '')
+  if (!pid) {
+    if (priceAlarmFormStatus) priceAlarmFormStatus.textContent = 'Lütfen bir ürün seçin.'
+    return
+  }
+  if (!Number.isFinite(targetRaw) || targetRaw < 1) {
+    if (priceAlarmFormStatus) priceAlarmFormStatus.textContent = 'Hedef fiyat geçerli bir TL tutarı olmalıdır.'
+    return
+  }
+  const product = getCatalogItemByAlertId(pid)
+  if (!product) {
+    if (priceAlarmFormStatus) priceAlarmFormStatus.textContent = 'Ürün bulunamadı.'
+    return
+  }
+  const listTl = parsePrice(product.price)
+  if (listTl <= 0) {
+    if (priceAlarmFormStatus) priceAlarmFormStatus.textContent = 'Ürün fiyatı okunamadı.'
+    return
+  }
+  const targetTl = Math.round(targetRaw * 100) / 100
+  const existing = readPriceAlerts().filter((r) => r.id !== pid)
+  const row: PriceAlertRecord = {
+    id: pid,
+    brand: product.brand,
+    model: product.model,
+    price: product.price,
+    image: product.image,
+    category: product.category,
+    targetPriceTl: targetTl,
+    addedAt: new Date().toISOString(),
+  }
+  writePriceAlerts([...existing, row])
+  if (priceAlarmFormStatus) priceAlarmFormStatus.textContent = 'Fiyat alarmı listeye eklendi.'
+  renderPriceAlerts()
+})
+
 giftCreateForm?.addEventListener('submit', (event) => {
   event.preventDefault()
   const amount = Number(giftAmountInput?.value ?? 0)
@@ -4262,6 +5508,137 @@ returnShopBtn?.addEventListener('click', () => {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 })
 
+cancelShopBtn?.addEventListener('click', () => {
+  setCancelVisible(false)
+  setAccountVisible(false)
+  setCategoryVisible(false)
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+})
+
+reviewsShopBtn?.addEventListener('click', () => {
+  setReviewsVisible(false)
+  setAccountVisible(false)
+  setCategoryVisible(false)
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+})
+
+wishlistVazgecBtn?.addEventListener('click', () => {
+  resetWishlistForm()
+})
+
+wishlistForm?.addEventListener('submit', (event) => {
+  event.preventDefault()
+  const importance = wishlistImportance?.value?.trim() ?? ''
+  const day = wishlistDay?.value ?? ''
+  const month = wishlistMonth?.value ?? ''
+  const year = wishlistYear?.value ?? ''
+  const title = wishlistTitle?.value?.trim() ?? ''
+  if (!importance || !day || !month || !year || !title) return
+
+  let list = readWishlistEntries()
+  const isDefault = Boolean(wishlistDefault?.checked)
+  if (isDefault) {
+    list = list.map((e) => ({ ...e, isDefault: false }))
+  }
+
+  const row: WishlistEntryRecord = {
+    id: crypto.randomUUID(),
+    importance,
+    day,
+    month,
+    year,
+    title,
+    description: wishlistDesc?.value?.trim() ?? '',
+    isDefault,
+    isActive: Boolean(wishlistActive?.checked),
+    createdAt: new Date().toISOString(),
+  }
+  list.push(row)
+  writeWishlistEntries(list)
+  resetWishlistForm()
+  renderWishlistTable()
+})
+
+wishlistTableBody?.addEventListener('click', (event) => {
+  const btn = (event.target as HTMLElement).closest<HTMLButtonElement>('.wishlist-remove-btn')
+  const id = btn?.dataset.wishlistId
+  if (!id) return
+  const next = readWishlistEntries().filter((e) => e.id !== id)
+  writeWishlistEntries(next)
+  renderWishlistTable()
+})
+
+document.querySelector<HTMLFormElement>('#wishlist-newsletter-form')?.addEventListener('submit', (event) => {
+  event.preventDefault()
+  const statusEl = document.querySelector<HTMLElement>('#wishlist-newsletter-status')
+  const input = document.querySelector<HTMLInputElement>('#wishlist-newsletter-email')
+  if (statusEl) statusEl.textContent = 'Teşekkürler, kaydınız alındı.'
+  input?.blur()
+})
+
+document.querySelector<HTMLButtonElement>('#wishlist-scroll-top')?.addEventListener('click', () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+})
+
+document.querySelector<HTMLFormElement>('#account-dashboard-newsletter-form')?.addEventListener('submit', (event) => {
+  event.preventDefault()
+  const statusEl = document.querySelector<HTMLElement>('#account-dashboard-newsletter-status')
+  const input = document.querySelector<HTMLInputElement>('#account-dashboard-newsletter-email')
+  if (statusEl) statusEl.textContent = 'Teşekkürler, kaydınız alındı.'
+  input?.blur()
+})
+
+document.querySelector<HTMLFormElement>('#home-bestsellers-newsletter-form')?.addEventListener('submit', (event) => {
+  event.preventDefault()
+  const statusEl = document.querySelector<HTMLElement>('#home-bestsellers-newsletter-status')
+  const input = document.querySelector<HTMLInputElement>('#home-bestsellers-newsletter-email')
+  if (statusEl) statusEl.textContent = 'Teşekkürler, kaydınız alındı.'
+  input?.blur()
+})
+
+document.querySelector<HTMLButtonElement>('#account-dashboard-scroll-top')?.addEventListener('click', () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+})
+
+cancelNewRequestBtn?.addEventListener('click', () => {
+  populateCancelOrderSelect()
+  if (cancelFormPanel) cancelFormPanel.style.display = 'block'
+  const tb = document.querySelector<HTMLElement>('#cancel-toolbar')
+  if (tb) tb.style.display = 'none'
+  if (cancelEmptyEl && readCancelRequests().length === 0) cancelEmptyEl.style.display = 'none'
+  cancelOrderSelect?.focus()
+})
+
+cancelFormDismissBtn?.addEventListener('click', () => {
+  closeCancelFormPanel()
+  if (cancelEmptyEl && readCancelRequests().length === 0) cancelEmptyEl.style.display = 'block'
+})
+
+cancelRequestForm?.addEventListener('submit', (event) => {
+  event.preventDefault()
+  const orderId = cancelOrderSelect?.value?.trim() ?? ''
+  if (!orderId) return
+  const orders = readOrders()
+  if (!orders.some((o) => o.id === orderId)) return
+  const note = ''
+  const existing = readCancelRequests()
+  if (existing.some((r) => r.orderId === orderId)) {
+    closeCancelFormPanel()
+    renderCancelSection()
+    return
+  }
+  const row: CancelRequestRecord = {
+    id: `cancel-${Date.now()}`,
+    orderId,
+    note,
+    createdAt: new Date().toISOString(),
+    status: 'İnceleniyor',
+  }
+  writeCancelRequests([row, ...existing])
+  closeCancelFormPanel()
+  renderCancelSection()
+})
+
 returnCancelBtn?.addEventListener('click', () => {
   setReturnVisible(false)
   setAccountVisible(true)
@@ -4282,6 +5659,10 @@ document.querySelectorAll<HTMLButtonElement>('.section-back-btn').forEach((btn) 
     setGiftVisible(false)
     setOrdersVisible(false)
     setFavoritesVisible(false)
+    setPriceAlarmVisible(false)
+    setCancelVisible(false)
+    setReviewsVisible(false)
+    setWishlistVisible(false)
     setShoppingCartVisible(false)
     if ((btn.dataset.backTarget ?? 'account') === 'category') setCategoryVisible(true)
     else setAccountVisible(true)
@@ -4373,11 +5754,39 @@ supportHistoryList?.addEventListener('click', async (event) => {
   }
 })
 
+topProductSearch?.addEventListener('input', () => {
+  scheduleTopSearch()
+})
+
+topProductSearch?.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeTopSearchResults()
+})
+
+topProductSearch?.addEventListener('focus', () => {
+  scheduleTopSearch()
+})
+
+topSearchResults?.addEventListener('click', (event) => {
+  const btn = (event.target as HTMLElement).closest<HTMLButtonElement>('.top-search-result')
+  if (!btn) return
+  event.preventDefault()
+  event.stopPropagation()
+  const idx = Number(btn.dataset.idx)
+  const item = topSearchMatchBuffer[idx]
+  if (!item) return
+  closeTopSearchResults()
+  if (topProductSearch) topProductSearch.value = ''
+  closeMenuPanel()
+  openProductDetail(item)
+})
+
 categoryLinks.forEach((link) => {
   link.addEventListener('click', (event) => {
     event.preventDefault()
     const key = link.dataset.category ?? 'kadin'
     currentCategoryView = (key as CategoryKey) ?? 'kadin'
+    resetCategoryFilters()
+    hydrateCategoryFilterOptions(currentCategoryView)
     syncCategoryTitle()
     renderCategoryProducts(currentCategoryView)
     closeMenuPanel()
@@ -4387,12 +5796,53 @@ categoryLinks.forEach((link) => {
   })
 })
 
+popularBrandLinks.forEach((link) => {
+  link.addEventListener('click', (event) => {
+    event.preventDefault()
+    const selectedBrand = (link.dataset.brand ?? '').trim()
+    if (!selectedBrand) return
+
+    const lowerBrand = selectedBrand.toLowerCase()
+    const preferredCategory = catalogItems.some((item) => item.category === currentCategoryView && item.brand.toLowerCase() === lowerBrand)
+      ? currentCategoryView
+      : (catalogItems.find((item) => item.brand.toLowerCase() === lowerBrand)?.category ?? 'kadin')
+
+    currentCategoryView = preferredCategory
+    resetCategoryFilters()
+    hydrateCategoryFilterOptions(currentCategoryView)
+    if (filterBrand) {
+      filterBrand.value = selectedBrand
+      categoryFilters.brand = selectedBrand
+    }
+    hydrateCategoryFilterOptions(currentCategoryView)
+    syncCategoryTitle()
+    renderCategoryProducts(currentCategoryView)
+    closeMenuPanel()
+    setCategoryVisible(true)
+    closeAuthModal()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  })
+})
+
+categorySection?.addEventListener('change', (event) => {
+  const t = event.target
+  if (!(t instanceof HTMLSelectElement)) return
+  if (!t.closest('.category-filters')) return
+  syncFiltersFromControls()
+  hydrateCategoryFilterOptions(currentCategoryView)
+  syncCategoryTitle()
+  renderCategoryProducts(currentCategoryView)
+})
+
 setAccountVisible(false)
 setCategoryVisible(false)
 setSupportVisible(false)
 setProfileVisible(false)
 setAddressVisible(false)
 setReturnVisible(false)
+setCancelVisible(false)
+setReviewsVisible(false)
+setWishlistVisible(false)
 setGiftVisible(false)
 setShoppingCartVisible(false)
 setOrdersVisible(false)
@@ -4400,10 +5850,12 @@ setFavoritesVisible(false)
 applyTranslations()
 syncCategoryTitle()
 refreshAuthButton()
+hydrateCategoryFilterOptions(currentCategoryView)
 renderCategoryProducts(currentCategoryView)
 renderSupportHistory()
 renderOrders()
 renderFavorites()
+renderBestSellersHome()
 renderFavoriteButtons()
 setupCityDistrictSelects()
 setupAddressCityDistrictSelects()
@@ -4418,3 +5870,6 @@ void pullCommerceStateFromBackend().then(() => {
   renderFavoriteButtons()
   refreshGiftSummary()
 })
+
+applyAdminRoute()
+window.addEventListener('hashchange', applyAdminRoute)

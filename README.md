@@ -2,6 +2,22 @@
 
 Modern bir gozluk e-ticaret projesi. On yuz tarafinda Vite + TypeScript, arka planda Express + PostgreSQL kullanir.
 
+## Sistem mimarisi (tablosuz ozet)
+
+Uygulama **istemci–sunucu** modelindedir. Tarayicida calisan istemci, HTTP uzerinden Express API ile konusur; kalici veri **PostgreSQL** uzerindedir.
+
+**On yuz:** Kaynak kod **TypeScript** ile yazilir; derleme ve gelistirme sunucusu **Vite** kullanilir. Bu sayede statik tip denetimi, daha guvenli refaktor ve IDE destegi saglanir. **React**, footer gibi bolumlerde `mount` ile **parca (island)** olarak kullanilir; ana etkilesim akisi buyuk olcude TypeScript ile DOM uzerinden yurutulur. Raporunuzda yalnizca “React SPA” demek yerine **“TypeScript tabanli istemci (Vite); React secili modullerde”** demek teknik olarak daha dogrudur ve projeyi bozmaz.
+
+**Arka yuz:** **Node.js** + **Express** REST API; kimlik, sepet/ siparis durumu, admin islemleri vb.
+
+## Hukuki moduller (KVKK, cerez, mesafeli satis) — neden gerekli?
+
+- **KVKK (aydinlatma metni):** Kisisel veri (uye kaydi, siparis, iletisim) islenmeden once kullanicinin **hangi verinin hangi amacla islendigini** bilmesi ve hukuki dayanagin aciklanmasi gerekir.
+- **Cerez politikasi:** Oturum, tercih veya analitik amacli cerez/ benzeri teknolojiler kullaniliyorsa **ne icin kullanildigi ve nasil yonetilecegi** seffaf sekilde bildirilmelidir.
+- **Mesafeli satis sozlesmesi / on bilgilendirme:** Mesafeli satislarda (internet magazasi) tuketicinin **cayma, iade, odeme, teslimat** gibi haklari sozlesme ve on bilgilendirme ile duzenlenir; odeme oncesinde **onay** istenmesi beklenir (projede odeme modalinda ilgili onay kutusu vardir).
+
+**Projede durum:** Footer’da kurumsal baglantilar (icerik henuz yer tutucu) ve admin **CMS → Kurumsal sayfalar** ile uzun metinler saklanabilir; canli ortamda KVKK / cerez / mesafeli satis metinleri avukat veya uyum ekibiyle netlestirilmelidir.
+
 ## Ozellikler
 
 - Kullanici kayit / giris / sifre sifirlama akisi
@@ -11,7 +27,7 @@ Modern bir gozluk e-ticaret projesi. On yuz tarafinda Vite + TypeScript, arka pl
 
 ## Teknolojiler
 
-- Frontend: `Vite`, `TypeScript`
+- Frontend: `Vite`, `TypeScript` (secili parcalarda `React`)
 - Backend: `Node.js`, `Express`
 - Veritabani: `PostgreSQL` (`pg`)
 - Diger: `dotenv`, `cors`, `nodemailer`, `concurrently`
