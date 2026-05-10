@@ -1600,6 +1600,17 @@ body.modal-open {
   font-size: 14px;
 }
 
+.order-card-customer {
+  margin: 6px 0 4px;
+  color: #222;
+  font-size: 13px;
+}
+
+.order-card-customer small {
+  color: #666;
+  margin-left: 4px;
+}
+
 .order-card-meta {
   margin: 8px 0 10px;
   color: #444;
@@ -3746,7 +3757,22 @@ body.modal-open {
   border-bottom: 1px solid #ddd;
   padding: 10px 12px;
   text-align: left;
-  vertical-align: middle;
+  vertical-align: top;
+}
+
+/* Ürün tablosu: Marka, Kategori ve İşlem dar; Model geniş tutulur. */
+#admin-products-table th:nth-child(1),
+#admin-products-table td:nth-child(1) {
+  width: 110px;
+}
+#admin-products-table th:nth-child(3),
+#admin-products-table td:nth-child(3) {
+  width: 90px;
+}
+#admin-products-table th:nth-child(9),
+#admin-products-table td:nth-child(9) {
+  width: 130px;
+  white-space: nowrap;
 }
 
 .admin-table th {
@@ -3785,6 +3811,152 @@ body.modal-open {
 .admin-save-order:hover {
   background: #111;
   color: #fff;
+}
+
+/* Yeni ürün ekleme paneli */
+.admin-add-product {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin: 12px 0;
+  background: #fafafa;
+}
+
+.admin-add-product > summary {
+  cursor: pointer;
+  padding: 10px 14px;
+  font-weight: 600;
+  user-select: none;
+}
+
+.admin-add-product[open] > summary {
+  border-bottom: 1px solid #ccc;
+}
+
+.admin-add-product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px 12px;
+  padding: 14px;
+}
+
+.admin-add-product-grid > label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: #333;
+}
+
+.admin-add-product-grid input,
+.admin-add-product-grid select {
+  padding: 6px 8px;
+  border: 1px solid #999;
+  font-size: 13px;
+  background: #fff;
+}
+
+.admin-add-product-actions {
+  padding: 0 14px 14px;
+}
+
+/* Geri al bildirimi (ürün silme sonrası) */
+.admin-undo-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  margin: 0 0 12px 0;
+  background: #fff8e1;
+  border: 1px solid #f1c40f;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #111;
+}
+
+.admin-undo-bar > span {
+  flex: 1;
+}
+
+.admin-undo-bar > .admin-btn.secondary {
+  padding: 6px 14px;
+  font-size: 13px;
+}
+
+.admin-undo-close {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: #555;
+  padding: 0 4px;
+}
+
+.admin-undo-close:hover {
+  color: #000;
+}
+
+/* Sipariş & Ürün tablosu: Kaydet / Sil aynı boyutta, kompakt */
+.admin-order-actions,
+.admin-product-actions {
+  vertical-align: top;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.admin-order-actions > .admin-save-order,
+.admin-order-actions > .admin-delete-order.admin-btn.secondary,
+.admin-product-actions > .admin-save-row,
+.admin-product-actions > .admin-delete-product.admin-btn.secondary {
+  box-sizing: border-box;
+  width: 56px;
+  min-width: 56px;
+  max-width: 56px;
+  height: 24px;
+  min-height: 24px;
+  max-height: 24px;
+  padding: 0;
+  margin: 0;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #111;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.admin-order-actions > .admin-save-order,
+.admin-product-actions > .admin-save-row {
+  margin-right: 5px;
+}
+
+.admin-order-actions > .admin-save-order,
+.admin-product-actions > .admin-save-row {
+  background: #fff;
+  color: #111;
+}
+
+.admin-order-actions > .admin-save-order:hover,
+.admin-product-actions > .admin-save-row:hover {
+  background: #111;
+  color: #fff;
+}
+
+.admin-order-actions > .admin-delete-order.admin-btn.secondary,
+.admin-product-actions > .admin-delete-product.admin-btn.secondary {
+  background: #fff;
+  color: #111;
+}
+
+.admin-order-actions > .admin-delete-order.admin-btn.secondary:hover,
+.admin-product-actions > .admin-delete-product.admin-btn.secondary:hover {
+  background: #f0f0f0;
+  border-color: #111;
 }
 
 .admin-tab-pane {

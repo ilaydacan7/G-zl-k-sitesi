@@ -343,6 +343,34 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
                 <button type="button" id="admin-bulk-price-btn" class="admin-btn secondary">Tüm fiyatları güncelle</button>
                 <button type="button" id="admin-sync-catalog-btn" class="admin-btn">Katalogu yeniden senkronla</button>
               </div>
+              <details class="admin-add-product" id="admin-add-product-panel">
+                <summary>Yeni ürün ekle</summary>
+                <div class="admin-add-product-grid">
+                  <label>SKU<input type="text" id="admin-new-sku" placeholder="örn: kadin-yeni-1" /></label>
+                  <label>Marka<input type="text" id="admin-new-brand" placeholder="örn: Ray-Ban" /></label>
+                  <label>Model<input type="text" id="admin-new-model" placeholder="örn: RB1234 Klasik" /></label>
+                  <label>Kategori
+                    <select id="admin-new-category">
+                      <option value="kadin">kadin</option>
+                      <option value="erkek">erkek</option>
+                      <option value="cocuk">cocuk</option>
+                    </select>
+                  </label>
+                  <label>Fiyat (TL)<input type="text" id="admin-new-price" placeholder="örn: 4.250,00 TL" /></label>
+                  <label>Stok<input type="number" id="admin-new-stock" min="0" value="15" /></label>
+                  <label>KDV %
+                    <select id="admin-new-vat">
+                      <option value="1">1</option>
+                      <option value="10">10</option>
+                      <option value="20" selected>20</option>
+                    </select>
+                  </label>
+                  <label>Dijital URL<input type="url" id="admin-new-digital" placeholder="https://..." /></label>
+                </div>
+                <div class="admin-add-product-actions">
+                  <button type="button" id="admin-new-product-btn" class="admin-btn">Ürünü ekle</button>
+                </div>
+              </details>
               <p class="admin-excel-hint" id="admin-excel-hint"></p>
               <div class="admin-table-wrap">
                 <table class="admin-table" id="admin-products-table">
@@ -356,7 +384,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
                       <th>KDV %</th>
                       <th>Varyant (JSON)</th>
                       <th>Dijital URL</th>
-                      <th></th>
+                      <th>İşlem</th>
                     </tr>
                   </thead>
                   <tbody id="admin-products-body"></tbody>
@@ -375,7 +403,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
                       <th>Tutar</th>
                       <th>Durum</th>
                       <th>Takip no</th>
-                      <th></th>
+                      <th>İşlem</th>
                     </tr>
                   </thead>
                   <tbody id="admin-orders-body"></tbody>
@@ -912,10 +940,28 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
           <button type="button" class="auth-tab" data-tab="register">Üye Ol</button>
         </div>
 
-        <form class="auth-pane active" id="login-pane">
-          <input type="email" id="login-email" placeholder="E-posta" required autocomplete="email" />
+        <form class="auth-pane active" id="login-pane" method="post" action="#" novalidate>
+          <input
+            type="email"
+            id="login-email"
+            name="username"
+            inputmode="email"
+            placeholder="E-posta"
+            required
+            autocomplete="username"
+          />
           <div class="password-field">
-            <input type="password" id="login-password" placeholder="Şifre" required autocomplete="current-password" />
+            <input
+              type="password"
+              id="login-password"
+              name="password"
+              placeholder="Şifre"
+              required
+              autocomplete="current-password"
+              spellcheck="false"
+              autocapitalize="off"
+              autocorrect="off"
+            />
             <button type="button" class="password-toggle" data-target="login-password" aria-label="Şifreyi göster">
               <svg class="eye-icon eye-open" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M2 12C4.8 7.8 8.1 5.6 12 5.6C15.9 5.6 19.2 7.8 22 12C19.2 16.2 15.9 18.4 12 18.4C8.1 18.4 4.8 16.2 2 12Z"></path>
@@ -928,7 +974,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
               </svg>
             </button>
           </div>
-          <button type="button" id="login-submit-btn" class="auth-submit">Giriş Yap</button>
+          <button type="submit" id="login-submit-btn" class="auth-submit">Giriş Yap</button>
           <div class="pane-actions">
             <button type="button" id="forgot-btn" class="auth-link">Şifremi Unuttum</button>
           </div>
@@ -942,7 +988,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
           </label>
         </form>
 
-        <form class="auth-pane" id="register-pane">
+        <form class="auth-pane" id="register-pane" method="post" action="#" novalidate>
           <div class="social-row">
             <button type="button" class="google-signin">
               <span class="google-mark" aria-hidden="true">G</span>
@@ -955,9 +1001,19 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
           </div>
           <input type="text" id="register-name" placeholder="Adınız" required autocomplete="given-name" />
           <input type="text" id="register-surname" placeholder="Soyadınız" required autocomplete="family-name" />
-          <input type="email" id="register-email" placeholder="E-posta" required autocomplete="email" />
+          <input type="email" id="register-email" name="email" placeholder="E-posta" required autocomplete="email" inputmode="email" />
           <div class="password-field">
-            <input type="password" id="register-password" placeholder="Şifre" required autocomplete="new-password" />
+            <input
+              type="password"
+              id="register-password"
+              name="password"
+              placeholder="Şifre"
+              required
+              autocomplete="new-password"
+              spellcheck="false"
+              autocapitalize="off"
+              autocorrect="off"
+            />
             <button type="button" class="password-toggle" data-target="register-password" aria-label="Şifreyi göster">
               <svg class="eye-icon eye-open" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M2 12C4.8 7.8 8.1 5.6 12 5.6C15.9 5.6 19.2 7.8 22 12C19.2 16.2 15.9 18.4 12 18.4C8.1 18.4 4.8 16.2 2 12Z"></path>
@@ -1005,7 +1061,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
           <p class="auth-note">Mailinize gelen kodu ve yeni şifrenizi girin.</p>
           <input type="text" id="reset-code" placeholder="Doğrulama Kodu" required />
           <div class="password-field">
-            <input type="password" id="reset-password" placeholder="Yeni Şifre" required />
+            <input type="password" id="reset-password" placeholder="Yeni Şifre" required autocomplete="new-password" spellcheck="false" autocapitalize="off" autocorrect="off" />
             <button type="button" class="password-toggle" data-target="reset-password" aria-label="Şifreyi göster">
               <svg class="eye-icon eye-open" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M2 12C4.8 7.8 8.1 5.6 12 5.6C15.9 5.6 19.2 7.8 22 12C19.2 16.2 15.9 18.4 12 18.4C8.1 18.4 4.8 16.2 2 12Z"></path>
@@ -1823,7 +1879,7 @@ const pullCommerceStateFromBackend = async () => {
 }
 
 const reserveCheckoutStock = async (items: CartItem[]): Promise<{ ok: true } | { ok: false; message: string }> => {
-  if (!items.length) return { ok: false, message: 'Sepetiniz boş.' }
+  if (!items.length) return { ok: false as const, message: 'Sepetiniz boş.' }
   try {
     const csrf = await fetchCsrfToken()
     const response = await fetch(`${API_BASE_URL}/checkout/stock`, {
@@ -1833,7 +1889,7 @@ const reserveCheckoutStock = async (items: CartItem[]): Promise<{ ok: true } | {
         items: items.map((item) => ({ brand: item.brand, model: item.model, quantity: Math.max(1, Math.floor(item.quantity || 1)) })),
       }),
     })
-    if (response.ok) return { ok: true }
+    if (response.ok) return { ok: true as const }
     if (response.status === 409) {
       let message = 'Bazi urunlerde stok yetersiz.'
       try {
@@ -1847,11 +1903,11 @@ const reserveCheckoutStock = async (items: CartItem[]): Promise<{ ok: true } | {
       } catch {
         // fallback message above
       }
-      return { ok: false, message }
+      return { ok: false as const, message }
     }
-    return { ok: false, message: 'Stok kontrolu yapilamadi. Lutfen tekrar deneyin.' }
+    return { ok: false as const, message: 'Stok kontrolu yapilamadi. Lutfen tekrar deneyin.' }
   } catch {
-    return { ok: false, message: 'Sunucuya ulasilamadi. Lutfen tekrar deneyin.' }
+    return { ok: false as const, message: 'Sunucuya ulasilamadi. Lutfen tekrar deneyin.' }
   }
 }
 
@@ -1933,16 +1989,16 @@ const postAdminLogin = async (email: string, password: string): Promise<AdminLog
     }
     if (!res.ok) {
       return {
-        ok: false,
+        ok: false as const,
         status: res.status,
         error: typeof body.error === 'string' && body.error.length > 0 ? body.error : undefined,
         networkError: false,
       }
     }
-    if (body.token) return { ok: true, token: body.token }
-    return { ok: false, status: res.status, networkError: false }
+    if (body.token) return { ok: true as const, token: body.token }
+    return { ok: false as const, status: res.status, networkError: false }
   } catch {
-    return { ok: false, status: 0, networkError: true }
+    return { ok: false as const, status: 0, networkError: true }
   }
 }
 
@@ -2523,6 +2579,12 @@ const renderOrders = () => {
     ordersListEl.innerHTML = '<p class="orders-empty">Henuz tamamlanmis siparisiniz bulunmuyor.</p>'
     return
   }
+  const profile = readUserInfo()
+  const sessionEmail = (getSessionEmail() ?? '').trim().toLowerCase()
+  const fullName = profile && profile.email.trim().toLowerCase() === sessionEmail
+    ? `${(profile.name ?? '').trim()} ${(profile.surname ?? '').trim()}`.trim()
+    : ''
+  const customerEmail = profile?.email ?? sessionEmail
   ordersListEl.innerHTML = orders
     .map(
       (order) => `
@@ -2531,6 +2593,11 @@ const renderOrders = () => {
           <strong>${escapeHtml(order.id)}</strong>
           <span>${escapeHtml(order.createdAt)}</span>
         </div>
+        ${
+          fullName || customerEmail
+            ? `<p class="order-card-customer"><strong>${escapeHtml(fullName || 'Müşteri')}</strong>${customerEmail ? ` <small>(${escapeHtml(customerEmail)})</small>` : ''}</p>`
+            : ''
+        }
         <dl class="order-card-status">
           <div><dt>Durum</dt><dd>${escapeHtml(order.status ?? 'Yeni')}</dd></div>
           <div><dt>Takip no</dt><dd>${formatOrderTrackingHtml((order.trackingCode ?? '').trim() || order.id)}</dd></div>
@@ -2913,6 +2980,13 @@ const isPasswordValid = (password: string): boolean => {
   const checks = evaluatePasswordRules(password)
   return checks.length && checks.upper && checks.lower && checks.digit && checks.special
 }
+
+/** Backend'deki normalizeIncomingPassword ile aynı: tarayıcı otomatik doldurma / farklı Unicode biçimi yüzünden doğru şifre bile reddedilmesin. */
+const normalizeAuthPassword = (value: string) =>
+  String(value ?? '')
+    .replace(/^\uFEFF/, '')
+    .trim()
+    .normalize('NFC')
 
 const updatePasswordRuleUI = (password: string) => {
   const checks = evaluatePasswordRules(password)
@@ -3529,6 +3603,70 @@ const syncAdminCatalogIfNeeded = async () => {
   })
 }
 
+type AdminProductSnapshot = {
+  sku: string
+  brand: string
+  model: string
+  category: string
+  priceText: string
+  stock: number
+  vatRate?: number
+  variants?: unknown
+  digitalUrl?: string
+}
+
+let lastDeletedAdminProduct: AdminProductSnapshot | null = null
+let adminProductUndoTimer: ReturnType<typeof setTimeout> | null = null
+
+const hideAdminProductUndo = () => {
+  const bar = document.querySelector<HTMLElement>('#admin-product-undo')
+  if (bar) bar.remove()
+  if (adminProductUndoTimer) {
+    clearTimeout(adminProductUndoTimer)
+    adminProductUndoTimer = null
+  }
+}
+
+const showAdminProductUndo = (product: AdminProductSnapshot) => {
+  hideAdminProductUndo()
+  lastDeletedAdminProduct = product
+  const host = document.querySelector<HTMLElement>('[data-admin-pane="products"]')
+  if (!host) return
+  const bar = document.createElement('div')
+  bar.id = 'admin-product-undo'
+  bar.className = 'admin-undo-bar'
+  bar.innerHTML = `
+    <span><strong>${escapeHtml(product.brand)} ${escapeHtml(product.model)}</strong> silindi.</span>
+    <button type="button" class="admin-btn secondary" id="admin-product-undo-btn">Geri al</button>
+    <button type="button" class="admin-undo-close" id="admin-product-undo-close" aria-label="Kapat">×</button>
+  `
+  host.prepend(bar)
+  adminProductUndoTimer = setTimeout(hideAdminProductUndo, 15000)
+}
+
+const restoreLastDeletedAdminProduct = async () => {
+  const product = lastDeletedAdminProduct
+  if (!product) return
+  const res = await adminFetch('/admin/products', {
+    method: 'POST',
+    body: JSON.stringify(product),
+  })
+  if (res.status === 401 || res.status === 503) {
+    sessionStorage.removeItem(ADMIN_TOKEN_KEY)
+    invalidateCsrfToken()
+    updateAdminGate()
+  }
+  if (!res.ok) {
+    const err = (await res.json().catch(() => ({}))) as { error?: string }
+    if (adminExcelHint) adminExcelHint.textContent = err.error ?? 'Geri alma başarısız.'
+    return
+  }
+  if (adminExcelHint) adminExcelHint.textContent = `${product.sku} geri yüklendi.`
+  lastDeletedAdminProduct = null
+  hideAdminProductUndo()
+  void renderAdminProducts()
+}
+
 const renderAdminProducts = async () => {
   if (!adminProductsBody || !getAdminToken()) return
   const res = await adminFetch('/admin/products')
@@ -3570,7 +3708,7 @@ const renderAdminProducts = async () => {
         <td><select class="admin-inp-vat">${vatOpts(p.vatRate)}</select></td>
         <td><input type="text" class="admin-inp-variants" value="${variantsText(p.variants)}" /></td>
         <td><input type="url" class="admin-inp-digital" value="${escapeHtml(p.digitalUrl ?? '')}" placeholder="https://..." /></td>
-        <td><button type="button" class="admin-save-row">Kaydet</button></td>
+        <td class="admin-product-actions"><button type="button" class="admin-save-row">Kaydet</button><button type="button" class="admin-btn secondary admin-delete-product">Sil</button></td>
       </tr>`,
     )
     .join('')
@@ -3593,7 +3731,7 @@ const renderAdminOrders = async () => {
         <td>${escapeHtml(o.total)}</td>
         <td><select class="admin-order-status">${ORDER_STATUS_OPTIONS.map((s) => `<option value="${escapeHtml(s)}"${s === o.status ? ' selected' : ''}>${escapeHtml(s)}</option>`).join('')}</select></td>
         <td><input type="text" class="admin-tracking" value="${escapeHtml(o.trackingCode ?? '')}" placeholder="Takip no" /></td>
-        <td><button type="button" class="admin-save-order">Kaydet</button></td>
+        <td class="admin-order-actions"><button type="button" class="admin-save-order">Kaydet</button><button type="button" class="admin-btn secondary admin-delete-order">Sil</button></td>
       </tr>`,
     )
     .join('')
@@ -4024,12 +4162,27 @@ let topSearchDebounce: ReturnType<typeof setTimeout> | null = null
 let topSearchMatchBuffer: CatalogItem[] = []
 
 const filterCatalogForTopSearch = (q: string): CatalogItem[] => {
-  const needle = q.trim().toLowerCase()
+  const needle = q.trim().toLocaleLowerCase('tr-TR')
   if (needle.length < 1) return []
   const out: CatalogItem[] = []
   for (const item of catalogItems) {
-    const hay = `${item.brand} ${item.model}`.toLowerCase()
-    if (hay.includes(needle)) {
+    const brand = item.brand.toLocaleLowerCase('tr-TR')
+    const model = item.model.toLocaleLowerCase('tr-TR')
+    const brandWords = brand.split(/\s+/)
+    const modelWords = model.split(/\s+/)
+    const isSingleLetter = needle.length === 1
+
+    const brandMatches =
+      brand.startsWith(needle) ||
+      brandWords.some((word) => word.startsWith(needle))
+
+    const modelMatches =
+      !isSingleLetter &&
+      (model.startsWith(needle) ||
+        modelWords.some((word) => word.startsWith(needle)) ||
+        `${brand} ${model}`.includes(needle))
+
+    if (brandMatches || modelMatches) {
       out.push(item)
       if (out.length >= TOP_SEARCH_MAX) break
     }
@@ -4358,7 +4511,7 @@ document.querySelector<HTMLFormElement>('#register-pane')?.addEventListener('sub
   const name = (document.querySelector<HTMLInputElement>('#register-name')?.value ?? '').trim()
   const surname = (document.querySelector<HTMLInputElement>('#register-surname')?.value ?? '').trim()
   const email = (document.querySelector<HTMLInputElement>('#register-email')?.value ?? '').trim().toLowerCase()
-  const password = (document.querySelector<HTMLInputElement>('#register-password')?.value ?? '').trim()
+  const password = normalizeAuthPassword(document.querySelector<HTMLInputElement>('#register-password')?.value ?? '')
   const registerTermsAccepted = Boolean(document.querySelector<HTMLInputElement>('#register-terms')?.checked)
 
   if (!name || !surname || !email || !password) {
@@ -4398,7 +4551,7 @@ document.querySelector<HTMLFormElement>('#register-pane')?.addEventListener('sub
 document.querySelector<HTMLFormElement>('#login-pane')?.addEventListener('submit', async (event) => {
   event.preventDefault()
   const email = (document.querySelector<HTMLInputElement>('#login-email')?.value ?? '').trim().toLowerCase()
-  const password = (document.querySelector<HTMLInputElement>('#login-password')?.value ?? '').trim()
+  const password = normalizeAuthPassword(document.querySelector<HTMLInputElement>('#login-password')?.value ?? '')
   const termsAccepted = Boolean(document.querySelector<HTMLInputElement>('#login-terms')?.checked)
   let loggedUserName = ''
 
@@ -4469,7 +4622,7 @@ document.querySelector<HTMLFormElement>('#forgot-pane')?.addEventListener('submi
 document.querySelector<HTMLFormElement>('#reset-pane')?.addEventListener('submit', async (event) => {
   event.preventDefault()
   const resetCode = (document.querySelector<HTMLInputElement>('#reset-code')?.value ?? '').trim()
-  const newPassword = (document.querySelector<HTMLInputElement>('#reset-password')?.value ?? '').trim()
+  const newPassword = normalizeAuthPassword(document.querySelector<HTMLInputElement>('#reset-password')?.value ?? '')
 
   if (!pendingResetEmail) {
     setStatus('Gecerli bir sifre sifirlama talebi bulunamadi.')
@@ -4604,35 +4757,35 @@ const performAdminLogin = async () => {
   if (adminLoginStatus) adminLoginStatus.textContent = 'Giriş yapılıyor…'
   try {
     const result = await postAdminLogin(email, password)
-    if (result.ok) {
-      setAdminToken(result.token)
-      if (adminLoginStatus) adminLoginStatus.textContent = ''
-      if (adminLoginPassword) adminLoginPassword.value = ''
-      updateAdminGate()
-      void refreshAdminData()
+    if (result.ok === false) {
+      const apiErr = result.error ?? ''
+      if (adminLoginStatus) {
+        if (result.networkError) {
+          adminLoginStatus.textContent =
+            'Ağ hatası. npm run dev:all çalışıyor mu? Tarayıcıdaki adres çubuğundaki port (örn. 5173) ile Vite çıktısı aynı olmalı.'
+        } else if (result.status === 503) {
+          adminLoginStatus.textContent = `${apiErr || 'API yapılandırması eksik.'} .env ve npm run dev:all kontrol edin.`
+        } else if (result.status === 502 || result.status === 504) {
+          adminLoginStatus.textContent =
+            'API sunucusu yanıt vermiyor (502). npm run dev:all veya npm run dev:api — ardından sayfayı yenileyin.'
+        } else if (result.status === 404) {
+          adminLoginStatus.textContent =
+            '404: İstek yanlış sunucuya gitti veya rota yok. 4000 portunda eski Node süreci olabilir (Görev Yöneticisi). npm run dev:all ile yeniden başlatın. VITE_API_URL kullanıyorsanız sonda /api olmalı (veya yalnızca kök yazın, otomatik eklenir).'
+        } else if (result.status === 401) {
+          adminLoginStatus.textContent =
+            apiErr ||
+            'E-posta veya şifre hatalı. .env içindeki ADMIN_EMAIL ve ADMIN_PASSWORD ile birebir aynı olmalı (büyük-küçük harf e-postada önemli değil).'
+        } else {
+          adminLoginStatus.textContent = apiErr || `Sunucu hatası (HTTP ${result.status}).`
+        }
+      }
       return
     }
-    const apiErr = result.error ?? ''
-    if (adminLoginStatus) {
-      if (result.networkError) {
-        adminLoginStatus.textContent =
-          'Ağ hatası. npm run dev:all çalışıyor mu? Tarayıcıdaki adres çubuğundaki port (örn. 5173) ile Vite çıktısı aynı olmalı.'
-      } else if (result.status === 503) {
-        adminLoginStatus.textContent = `${apiErr || 'API yapılandırması eksik.'} .env ve npm run dev:all kontrol edin.`
-      } else if (result.status === 502 || result.status === 504) {
-        adminLoginStatus.textContent =
-          'API sunucusu yanıt vermiyor (502). npm run dev:all veya npm run dev:api — ardından sayfayı yenileyin.'
-      } else if (result.status === 404) {
-        adminLoginStatus.textContent =
-          '404: İstek yanlış sunucuya gitti veya rota yok. 4000 portunda eski Node süreci olabilir (Görev Yöneticisi). npm run dev:all ile yeniden başlatın. VITE_API_URL kullanıyorsanız sonda /api olmalı (veya yalnızca kök yazın, otomatik eklenir).'
-      } else if (result.status === 401) {
-        adminLoginStatus.textContent =
-          apiErr ||
-          'E-posta veya şifre hatalı. .env içindeki ADMIN_EMAIL ve ADMIN_PASSWORD ile birebir aynı olmalı (büyük-küçük harf e-postada önemli değil).'
-      } else {
-        adminLoginStatus.textContent = apiErr || `Sunucu hatası (HTTP ${result.status}).`
-      }
-    }
+    setAdminToken(result.token)
+    if (adminLoginStatus) adminLoginStatus.textContent = ''
+    if (adminLoginPassword) adminLoginPassword.value = ''
+    updateAdminGate()
+    void refreshAdminData()
   } catch {
     if (adminLoginStatus)
       adminLoginStatus.textContent =
@@ -4681,6 +4834,46 @@ adminBulkPriceBtn?.addEventListener('click', async () => {
   void refreshAdminData()
 })
 
+document.querySelector<HTMLButtonElement>('#admin-new-product-btn')?.addEventListener('click', async () => {
+  if (!getAdminToken()) return
+  const sku = (document.querySelector<HTMLInputElement>('#admin-new-sku')?.value ?? '').trim().toLowerCase()
+  const brand = (document.querySelector<HTMLInputElement>('#admin-new-brand')?.value ?? '').trim()
+  const model = (document.querySelector<HTMLInputElement>('#admin-new-model')?.value ?? '').trim()
+  const category = (document.querySelector<HTMLSelectElement>('#admin-new-category')?.value ?? '').trim()
+  const priceText = (document.querySelector<HTMLInputElement>('#admin-new-price')?.value ?? '').trim()
+  const stock = Number(document.querySelector<HTMLInputElement>('#admin-new-stock')?.value ?? '15')
+  const vatRate = Number(document.querySelector<HTMLSelectElement>('#admin-new-vat')?.value ?? '20')
+  const digitalUrl = (document.querySelector<HTMLInputElement>('#admin-new-digital')?.value ?? '').trim()
+  if (!sku || !brand || !model || !category || !priceText) {
+    if (adminExcelHint) adminExcelHint.textContent = 'SKU, marka, model, kategori ve fiyat zorunlu.'
+    return
+  }
+  const res = await adminFetch('/admin/products', {
+    method: 'POST',
+    body: JSON.stringify({ sku, brand, model, category, priceText, stock, vatRate, digitalUrl, variants: [] }),
+  })
+  if (res.status === 401 || res.status === 503) {
+    sessionStorage.removeItem(ADMIN_TOKEN_KEY)
+    invalidateCsrfToken()
+    updateAdminGate()
+  }
+  const body = (await res.json().catch(() => ({}))) as { error?: string; sku?: string }
+  if (!res.ok) {
+    if (adminExcelHint) adminExcelHint.textContent = body.error ?? 'Ürün eklenemedi.'
+    return
+  }
+  if (adminExcelHint) adminExcelHint.textContent = `${sku} eklendi.`
+  for (const id of ['#admin-new-sku', '#admin-new-brand', '#admin-new-model', '#admin-new-price', '#admin-new-digital']) {
+    const el = document.querySelector<HTMLInputElement>(id)
+    if (el) el.value = ''
+  }
+  const stockEl = document.querySelector<HTMLInputElement>('#admin-new-stock')
+  if (stockEl) stockEl.value = '15'
+  const panel = document.querySelector<HTMLDetailsElement>('#admin-add-product-panel')
+  if (panel) panel.open = false
+  void renderAdminProducts()
+})
+
 adminSyncCatalogBtn?.addEventListener('click', async () => {
   if (!getAdminToken()) return
   if (adminExcelHint) adminExcelHint.textContent = 'Senkronize ediliyor…'
@@ -4711,6 +4904,16 @@ adminSyncCatalogBtn?.addEventListener('click', async () => {
 
 adminSection?.addEventListener('click', async (ev) => {
   const target = ev.target as HTMLElement
+  if (target.id === 'admin-product-undo-btn') {
+    ev.preventDefault()
+    void restoreLastDeletedAdminProduct()
+    return
+  }
+  if (target.id === 'admin-product-undo-close') {
+    ev.preventDefault()
+    hideAdminProductUndo()
+    return
+  }
   if (target.classList.contains('admin-save-row')) {
     ev.preventDefault()
     const tr = target.closest('tr')
@@ -4744,6 +4947,33 @@ adminSection?.addEventListener('click', async (ev) => {
     }
     if (adminExcelHint) adminExcelHint.textContent = `${sku} kaydedildi.`
   }
+
+  if (target.classList.contains('admin-delete-product')) {
+    ev.preventDefault()
+    const tr = target.closest('tr')
+    const sku = tr?.dataset.sku ?? ''
+    if (!sku) return
+    const brand = tr?.children[0]?.textContent?.trim() ?? ''
+    const model = tr?.children[1]?.textContent?.trim() ?? ''
+    if (!confirm(`Bu ürün silinsin mi?\n${brand} ${model}\nSKU: ${sku}\n\n(Üstte çıkacak "Geri al" ile hemen geri yükleyebilirsin.)`)) return
+    const res = await adminFetch(`/admin/products/${encodeURIComponent(sku)}`, { method: 'DELETE' })
+    if (res.status === 401 || res.status === 503) {
+      sessionStorage.removeItem(ADMIN_TOKEN_KEY)
+      invalidateCsrfToken()
+      updateAdminGate()
+    }
+    const body = (await res.json().catch(() => ({}))) as { error?: string; product?: AdminProductSnapshot }
+    if (!res.ok) {
+      if (adminExcelHint) adminExcelHint.textContent = body.error ?? 'Ürün silinemedi.'
+      return
+    }
+    if (body.product) {
+      showAdminProductUndo(body.product)
+    }
+    if (adminExcelHint) adminExcelHint.textContent = `${sku} silindi.`
+    void renderAdminProducts()
+  }
+
   if (target.classList.contains('admin-save-order')) {
     ev.preventDefault()
     const tr = target.closest('tr')
@@ -4751,7 +4981,11 @@ adminSection?.addEventListener('click', async (ev) => {
     const customerEmail = tr?.dataset.customer ?? ''
     const status = tr?.querySelector<HTMLSelectElement>('.admin-order-status')?.value ?? ''
     const trackingCode = tr?.querySelector<HTMLInputElement>('.admin-tracking')?.value.trim() ?? ''
-    if (!orderId || !customerEmail || !status) return
+    if (!orderId || !customerEmail || !status) {
+      if (adminInvoiceHint) adminInvoiceHint.textContent = 'Sipariş satırı okunamadı. Sayfayı yenileyip tekrar deneyin.'
+      return
+    }
+    if (adminInvoiceHint) adminInvoiceHint.textContent = 'Kaydediliyor…'
     const res = await adminFetch(`/admin/orders/${encodeURIComponent(orderId)}`, {
       method: 'PATCH',
       body: JSON.stringify({ customerEmail, status, trackingCode }),
@@ -4766,7 +5000,39 @@ adminSection?.addEventListener('click', async (ev) => {
       if (adminInvoiceHint) adminInvoiceHint.textContent = err.error ?? 'Sipariş güncellenemedi.'
       return
     }
-    void refreshAdminData()
+    await refreshAdminData()
+    if (adminInvoiceHint) {
+      adminInvoiceHint.textContent = `${orderId} kaydedildi — durum: ${status}${trackingCode ? `, takip: ${trackingCode}` : ''}.`
+      adminInvoiceHint.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
+  }
+
+  if (target.classList.contains('admin-delete-order')) {
+    ev.preventDefault()
+    const tr = target.closest('tr')
+    const orderId = tr?.dataset.orderId ?? ''
+    const customerEmail = tr?.dataset.customer ?? ''
+    if (!orderId || !customerEmail) return
+    if (!confirm(`Bu sipariş kalıcı olarak silinsin mi?\n${orderId}\n${customerEmail}`)) return
+    const res = await adminFetch(`/admin/orders/${encodeURIComponent(orderId)}`, {
+      method: 'DELETE',
+      body: JSON.stringify({ customerEmail }),
+    })
+    if (res.status === 401 || res.status === 503) {
+      sessionStorage.removeItem(ADMIN_TOKEN_KEY)
+      invalidateCsrfToken()
+      updateAdminGate()
+    }
+    if (!res.ok) {
+      const err = (await res.json().catch(() => ({}))) as { error?: string }
+      if (adminInvoiceHint) adminInvoiceHint.textContent = err.error ?? 'Sipariş silinemedi.'
+      return
+    }
+    await refreshAdminData()
+    if (adminInvoiceHint) {
+      adminInvoiceHint.textContent = `${orderId} silindi.`
+      adminInvoiceHint.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
   }
 
   if (target.classList.contains('admin-save-customer')) {
@@ -5246,7 +5512,7 @@ checkoutForm?.addEventListener('submit', async (event) => {
   if (checkoutStatusEl) checkoutStatusEl.textContent = 'Stok kontrol ediliyor...'
   const cartItems = readCart()
   const stockResult = await reserveCheckoutStock(cartItems)
-  if (!stockResult.ok) {
+  if (stockResult.ok === false) {
     if (checkoutStatusEl) checkoutStatusEl.textContent = stockResult.message
     renderCart()
     return
@@ -5873,3 +6139,39 @@ void pullCommerceStateFromBackend().then(() => {
 
 applyAdminRoute()
 window.addEventListener('hashchange', applyAdminRoute)
+
+// Anasayfa fiyat/stok = admin panelinde guncellenen admin_products tablosu.
+// Acilista bir kez cek, esleyebildigimiz urunlerin price ve image disindaki bilgilerini guncelle, sonra tekrar render et.
+type PublicCatalogRow = { sku: string; brand: string; model: string; category: string; priceText: string; stock: number }
+
+const overlayCatalogFromBackend = async () => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/catalog`)
+    if (!res.ok) return
+    const rows = (await res.json()) as PublicCatalogRow[]
+    const byKey = new Map<string, PublicCatalogRow>()
+    for (const row of rows) {
+      const key = `${String(row.brand ?? '').trim()}__${String(row.model ?? '').trim()}`.toLowerCase()
+      if (key) byKey.set(key, row)
+    }
+    let changed = false
+    for (const item of catalogItems) {
+      const key = `${item.brand}__${item.model}`.toLowerCase()
+      const row = byKey.get(key)
+      if (!row) continue
+      const nextPrice = String(row.priceText ?? '').trim()
+      if (nextPrice && nextPrice !== item.price) {
+        item.price = nextPrice
+        changed = true
+      }
+    }
+    if (changed) {
+      renderCategoryProducts(currentCategoryView)
+      renderBestSellersHome()
+    }
+  } catch {
+    // sessizce gec; offline ise varsayilan katalog gosterilir
+  }
+}
+
+void overlayCatalogFromBackend()

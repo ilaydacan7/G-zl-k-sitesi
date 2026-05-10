@@ -4,6 +4,7 @@ import express from 'express'
 import cors from 'cors'
 import pg from 'pg'
 import nodemailer from 'nodemailer'
+import bcrypt from 'bcryptjs'
 
 const { Pool } = pg
 const PORT = Number(process.env.API_PORT ?? 4000)
@@ -61,42 +62,38 @@ const getLoginBucket = (key) => {
   return b
 }
 
-const isLoginBlocked = (key) => {
-  const b = getLoginBucket(key)
-  return b.fails >= LOGIN_RATE_MAX_FAILS
+// Giris deneme sayisi sinirlamasi devre disi birakildi (istek uzerine).
+// Fonksiyonlar var ama hicbir sey yapmiyor; mevcut cagiranlari bozmamak icin korunuyor.
+const isLoginBlocked = (_key) => false
+
+const sendLoginRateLimited = (_res, _key) => {
+  // intentionally empty
 }
 
-const sendLoginRateLimited = (res, key) => {
-  const b = getLoginBucket(key)
-  const retryAfterSec = Math.max(1, Math.ceil((b.resetAt - Date.now()) / 1000))
-  res.setHeader('Retry-After', String(retryAfterSec))
-  res.status(429).json({ error: 'cok_fazla_giris_denemesi' })
-}
-
-const recordLoginFail = (key) => {
-  const b = getLoginBucket(key)
-  b.fails += 1
+const recordLoginFail = (_key) => {
+  // intentionally empty
 }
 
 const clearLoginFails = (key) => {
   loginFailBuckets.delete(key)
 }
 
-const SCRYPT_PARAMS = { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 }
-const SCRYPT_KEYLEN = 64
+// Sifre kayit ve dogrulama sirasinda birebir ayni normalize edilmeli.
+// Aksi halde Turkce karakterlerde (NFC/NFD) veya BOM gibi gorunmez karakterlerde dogru sifre bile hatali gozukur.
+const normalizeIncomingPassword = (value) =>
+  String(value ?? '').replace(/^\uFEFF/, '').trim().normalize('NFC')
+
+// Asil sifre saklama: bcrypt (10 round). Geriye donuk uyum icin scrypt$ ile baslayan
+// eski hash'ler ayri bir dalda dogrulanir; basarili girisler login sirasinda bcrypt'e migrate edilir.
+const BCRYPT_ROUNDS = 10
+const SCRYPT_PARAMS_LEGACY = { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 }
 
 const hashUserPassword = (plain) => {
-  const salt = crypto.randomBytes(16)
-  const hash = crypto.scryptSync(String(plain), salt, SCRYPT_KEYLEN, SCRYPT_PARAMS)
-  return `scrypt$1$${SCRYPT_PARAMS.N}$${SCRYPT_PARAMS.r}$${SCRYPT_PARAMS.p}$${salt.toString('base64url')}$${hash.toString('base64url')}`
+  return bcrypt.hashSync(normalizeIncomingPassword(plain), BCRYPT_ROUNDS)
 }
 
-const verifyUserPassword = (plain, stored) => {
-  const s = String(stored ?? '')
-  if (!s.startsWith('scrypt$')) {
-    return plain === s
-  }
-  const parts = s.split('$')
+const verifyLegacyScryptPassword = (plain, stored) => {
+  const parts = String(stored ?? '').split('$')
   if (parts.length !== 7 || parts[0] !== 'scrypt' || parts[1] !== '1') return false
   const N = Number(parts[2])
   const r = Number(parts[3])
@@ -110,13 +107,46 @@ const verifyUserPassword = (plain, stored) => {
   } catch {
     return false
   }
-  const hash = crypto.scryptSync(String(plain), salt, expected.length, { N, r, p, maxmem: SCRYPT_PARAMS.maxmem })
+  const hash = crypto.scryptSync(plain, salt, expected.length, { N, r, p, maxmem: SCRYPT_PARAMS_LEGACY.maxmem })
   if (hash.length !== expected.length) return false
   try {
     return crypto.timingSafeEqual(hash, expected)
   } catch {
     return false
   }
+}
+
+const verifyUserPassword = (plain, stored) => {
+  const s = String(stored ?? '')
+  const rawPlain = String(plain ?? '').replace(/^\uFEFF/, '').trim()
+  const normalizedPlain = rawPlain.normalize('NFC')
+  // Eski kayitlar NFC normalize olmadan hashlenmis olabilir; iki varyasyonu da dene.
+  const candidates = normalizedPlain === rawPlain ? [normalizedPlain] : [normalizedPlain, rawPlain]
+
+  if (s.startsWith('$2a$') || s.startsWith('$2b$') || s.startsWith('$2y$')) {
+    for (const c of candidates) {
+      try {
+        if (bcrypt.compareSync(c, s)) return true
+      } catch {
+        // try next
+      }
+    }
+    return false
+  }
+  if (s.startsWith('scrypt$')) {
+    for (const c of candidates) {
+      if (verifyLegacyScryptPassword(c, s)) return true
+    }
+    return false
+  }
+  // Cok eski / hashlanmamis kayitlar icin son care: duz karsilastirma.
+  return candidates.some((c) => c === normalizeIncomingPassword(s) || c === String(s ?? '').trim())
+}
+
+// Login sonrasi bcrypt olmayan hash'leri sessizce yenisine dondur.
+const isBcryptHash = (s) => {
+  const v = String(s ?? '')
+  return v.startsWith('$2a$') || v.startsWith('$2b$') || v.startsWith('$2y$')
 }
 
 const createCsrfToken = () => {
@@ -802,7 +832,7 @@ app.post('/api/auth/register', async (req, res) => {
   const name = String(req.body?.name ?? '').trim()
   const surname = String(req.body?.surname ?? '').trim()
   const email = normalizeEmail(req.body?.email)
-  const password = String(req.body?.password ?? '').trim()
+  const password = normalizeIncomingPassword(req.body?.password)
   if (!name || !surname || !email || !password) {
     res.status(400).json({ error: 'tum alanlar gerekli' })
     return
@@ -828,9 +858,7 @@ app.post('/api/auth/register', async (req, res) => {
 
 app.post('/api/auth/login', async (req, res) => {
   const email = normalizeEmail(req.body?.email)
-  const password = String(req.body?.password ?? '')
-    .trim()
-    .replace(/^\uFEFF/, '')
+  const password = normalizeIncomingPassword(req.body?.password)
   if (!email || !password) {
     res.status(400).json({ error: 'email ve sifre gerekli' })
     return
@@ -870,7 +898,8 @@ app.post('/api/auth/login', async (req, res) => {
       res.status(401).json({ error: 'e-posta veya sifre hatali' })
       return
     }
-    if (!stored.startsWith('scrypt$')) {
+    // Lazy migration: eski sifre formati (scrypt veya duz metin) bcrypt'e cevrilir.
+    if (!isBcryptHash(stored)) {
       const nextHash = hashUserPassword(password)
       await pool.query('UPDATE users SET password = $2, updated_at = NOW() WHERE email = $1', [email, nextHash])
     }
@@ -924,7 +953,7 @@ app.post('/api/auth/reset/request', async (req, res) => {
 app.post('/api/auth/reset/confirm', async (req, res) => {
   const email = normalizeEmail(req.body?.email)
   const code = String(req.body?.code ?? '').trim()
-  const password = String(req.body?.password ?? '').trim()
+  const password = normalizeIncomingPassword(req.body?.password)
   if (!email || !code || !password) {
     res.status(400).json({ error: 'email, kod ve yeni sifre gerekli' })
     return
@@ -1204,6 +1233,27 @@ app.get('/api/admin/dashboard', requireAdmin, async (_req, res) => {
   }
 })
 
+// Halka acik katalog: anasayfa fiyat/stok bilgisini admin_products tablosundan alir.
+app.get('/api/catalog', async (_req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT sku, brand, model, category, price_text, stock FROM admin_products ORDER BY brand ASC, model ASC',
+    )
+    res.json(
+      result.rows.map((row) => ({
+        sku: row.sku,
+        brand: row.brand,
+        model: row.model,
+        category: row.category,
+        priceText: row.price_text,
+        stock: row.stock,
+      })),
+    )
+  } catch {
+    res.status(500).json({ error: 'katalog okunamadi' })
+  }
+})
+
 app.get('/api/admin/products', requireAdmin, async (_req, res) => {
   try {
     const result = await pool.query(
@@ -1293,6 +1343,82 @@ app.patch('/api/admin/products/:sku', requireAdmin, async (req, res) => {
   }
 })
 
+app.delete('/api/admin/products/:sku', requireAdmin, async (req, res) => {
+  const sku = String(req.params.sku ?? '').toLowerCase()
+  if (!sku) {
+    res.status(400).json({ error: 'sku gerekli' })
+    return
+  }
+  try {
+    const result = await pool.query(
+      'DELETE FROM admin_products WHERE sku = $1 RETURNING sku, brand, model, category, price_text, stock, variants, digital_url, vat_rate',
+      [sku],
+    )
+    if (!result.rowCount) {
+      res.status(404).json({ error: 'urun bulunamadi' })
+      return
+    }
+    const row = result.rows[0]
+    res.json({
+      ok: true,
+      product: {
+        sku: row.sku,
+        brand: row.brand,
+        model: row.model,
+        category: row.category,
+        priceText: row.price_text,
+        stock: row.stock,
+        variants: row.variants,
+        digitalUrl: row.digital_url,
+        vatRate: row.vat_rate,
+      },
+    })
+  } catch {
+    res.status(500).json({ error: 'urun silinemedi' })
+  }
+})
+
+app.post('/api/admin/products', requireAdmin, async (req, res) => {
+  const body = req.body ?? {}
+  const sku = String(body.sku ?? '').toLowerCase().trim()
+  const brand = String(body.brand ?? '').trim()
+  const model = String(body.model ?? '').trim()
+  const category = String(body.category ?? '').trim()
+  const priceText = String(body.priceText ?? '').trim()
+  const stockRaw = Number(body.stock)
+  const stock = Number.isFinite(stockRaw) ? Math.max(0, Math.floor(stockRaw)) : 15
+  const digitalUrl = typeof body.digitalUrl === 'string' ? body.digitalUrl.trim() : ''
+  const variants = body.variants ?? []
+  const vatRaw = Number(body.vatRate)
+  const vatRate = [1, 10, 20].includes(vatRaw) ? vatRaw : 20
+  if (!sku || !brand || !model || !category || !priceText) {
+    res.status(400).json({ error: 'sku, brand, model, category ve priceText gerekli' })
+    return
+  }
+  try {
+    await pool.query(
+      `
+        INSERT INTO admin_products (sku, brand, model, category, price_text, stock, variants, digital_url, vat_rate)
+        VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9)
+        ON CONFLICT (sku) DO UPDATE SET
+          brand = EXCLUDED.brand,
+          model = EXCLUDED.model,
+          category = EXCLUDED.category,
+          price_text = EXCLUDED.price_text,
+          stock = EXCLUDED.stock,
+          variants = EXCLUDED.variants,
+          digital_url = EXCLUDED.digital_url,
+          vat_rate = EXCLUDED.vat_rate,
+          updated_at = NOW()
+      `,
+      [sku, brand, model, category, priceText, stock, JSON.stringify(variants), digitalUrl, vatRate],
+    )
+    res.status(201).json({ ok: true, sku })
+  } catch {
+    res.status(500).json({ error: 'urun eklenemedi' })
+  }
+})
+
 app.post('/api/admin/products/bulk-stock', requireAdmin, async (req, res) => {
   const skus = req.body?.skus
   const delta = req.body?.delta
@@ -1374,6 +1500,29 @@ app.patch('/api/admin/orders/:orderId', requireAdmin, async (req, res) => {
     res.json({ ok: true, orderId, status, trackingCode })
   } catch {
     res.status(500).json({ error: 'siparis guncellenemedi' })
+  }
+})
+
+app.delete('/api/admin/orders/:orderId', requireAdmin, async (req, res) => {
+  const orderId = String(req.params.orderId ?? '').trim()
+  const customerEmail = normalizeEmail(req.body?.customerEmail ?? req.body?.customer_email)
+  if (!orderId || !customerEmail) {
+    res.status(400).json({ error: 'orderId ve customerEmail gerekli' })
+    return
+  }
+  try {
+    const state = await getStateByEmail(customerEmail)
+    const orders = Array.isArray(state.orders) ? state.orders : []
+    const nextOrders = orders.filter((o) => String(o.id ?? '') !== orderId)
+    if (nextOrders.length === orders.length) {
+      res.status(404).json({ error: 'siparis bulunamadi' })
+      return
+    }
+    await upsertState(customerEmail, { ...state, orders: nextOrders })
+    await pool.query('DELETE FROM order_fulfillment WHERE order_id = $1', [orderId])
+    res.json({ ok: true, orderId })
+  } catch {
+    res.status(500).json({ error: 'siparis silinemedi' })
   }
 })
 
